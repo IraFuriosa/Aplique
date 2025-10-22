@@ -1,16 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gerenciador de Investimentos</title>
   <!-- Tailwind CSS para estilização moderna e responsiva -->
-  <!-- CORREÇÃO 1: Removido espaço extra -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome para ícones (lixeira) -->
-  <!-- CORREÇÃO 2: Removido espaço extra -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJdE52J1pQ0+wAfrrK5zQ78T7y6mG+W4jWd0P/D0sF0O00g/O0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Configuração da fonte Inter e estilos aprimorados -->
   <style>
     :root {
@@ -27,918 +22,885 @@
       font-family: 'Inter', sans-serif;
       background-color: var(--background-light); /* Fundo mais suave */
       color: #1f2937;
-      min-height: 10vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* Estilos personalizados para botões usando @apply do Tailwind */
-    .btn {
-      @apply font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md;
-    }
-
-    .btn:disabled {
-      @apply opacity-50 cursor-not-allowed;
-    }
-
+    /* Estilos personalizados para botões */
     .btn-primary {
-      @apply bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)] focus:ring-offset-2;
+      @apply bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-2.5 px-6 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 ease-in-out;
     }
-
     .btn-secondary {
-      @apply bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2;
+      @apply bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 text-gray-800 font-semibold py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 ease-in-out;
     }
-
-    .btn-delete {
-      /* Ajuste para alinhar o ícone e o texto */
-      @apply bg-[var(--error)] text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-[var(--error)] focus:ring-offset-2;
+    .btn-danger {
+      @apply bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 transition-all duration-200 ease-in-out;
     }
-
     .btn-success {
-      @apply bg-[var(--success)] text-white hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-[var(--success)] focus:ring-offset-2;
+      @apply bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition-all duration-200 ease-in-out;
+    }
+    .btn-tertiary {
+      @apply bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 ease-in-out;
+    }
+    .btn-status {
+      @apply text-xs font-bold px-3 py-1 rounded-full shadow-inner transition-colors duration-150 ease-in-out;
+    }
+    .btn-status-vencido {
+      @apply bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 border border-gray-400;
+    }
+    .btn-status-hoje {
+      @apply bg-gradient-to-r from-green-200 to-green-300 text-green-800 border border-green-300;
+    }
+    .btn-status-proximo {
+      @apply bg-gradient-to-r from-red-200 to-red-300 text-red-800 border border-red-300;
+    }
+    .btn-status-distantes {
+      @apply bg-gradient-to-r from-yellow-200 to-yellow-300 text-yellow-800 border border-yellow-300;
     }
 
-    /* Ajuste para o formulário */
-    .input-field {
-      @apply p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] w-full;
+    /* Estilo para Chart.js */
+    .chart-container {
+      max-height: 450px;
     }
 
-    /* Estilo para a mensagem de feedback/toast */
-    #feedback-message {
-        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-        z-index: 1000;
-        transform: translateY(100%);
+    /* Estilo para os cards principais */
+    .app-card {
+        @apply bg-white shadow-2xl rounded-2xl p-8 border border-gray-100 transition duration-300 hover:shadow-indigo-100/50;
     }
 
-    #feedback-message.show {
-        transform: translateY(0);
-        opacity: 1;
+    /* Estilo para os inputs */
+    input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select {
+        @apply transition duration-150 ease-in-out border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm p-3;
+    }
+
+    /* Estilo para a lista de investimentos */
+    .investment-item {
+        @apply flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white shadow-sm transition duration-150 ease-in-out hover:bg-indigo-50/50 hover:shadow-md;
     }
   </style>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            'indigo': {
+              50: '#eef2ff',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+            }
+          }
+        }
+      }
+    }
+  </script>
 </head>
-<body class="flex flex-col min-h-screen">
+<body>
 
-  <!-- Mensagem de Feedback (Toast) -->
-  <div id="feedback-message" class="fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 translate-y-full max-w-sm">
-    <p id="feedback-text" class="font-medium"></p>
+  <!-- Mensagem de Feedback (Substitui alert()) -->
+  <div id="feedback-message" class="fixed top-5 right-5 p-4 rounded-xl shadow-2xl text-white transform transition-transform duration-500 z-50 hidden"></div>
+
+  <!-- Modal de Confirmação de Exclusão (Substitui window.confirm) -->
+  <div id="delete-modal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-3xl p-8 w-11/12 max-w-sm">
+      <h3 class="text-2xl font-extrabold text-red-700 mb-4 flex items-center">
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.332 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        Confirmar Exclusão
+      </h3>
+      <p class="text-gray-600 mb-6" id="delete-modal-text">Esta ação é irreversível. Tem certeza de que deseja excluir permanentemente este investimento?</p>
+      <div class="flex justify-end space-x-3">
+        <button id="cancel-delete" class="btn-tertiary py-2 px-4">Cancelar</button>
+        <button id="confirm-delete" class="btn-danger py-2 px-4">Excluir</button>
+      </div>
+    </div>
   </div>
 
-  <main class="flex-grow container mx-auto p-4 md:p-8">
-    <header class="text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-[var(--primary)]">Gestão Financeira e de Investimentos</h1>
-        <p class="text-gray-500 mt-2">Sua carteira em tempo real e em ambiente colaborativo.</p>
-    </header>
+  <!-- #auth-container: TELA DE LOGIN/CADASTRO -->
+  <div id="auth-container" class="flex-grow flex items-center justify-center p-4">
+    <div class="app-card w-full max-w-md text-center">
+        <h2 class="text-3xl font-extrabold text-indigo-700 mb-6" id="auth-title">Acesse sua Carteira</h2>
 
-    <!-- Modal de Confirmação de Exclusão -->
-    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Confirmar Exclusão</h2>
-            <p class="mb-6 text-gray-600">Tem certeza que deseja excluir este investimento? Esta ação é irreversível e o investimento será removido de **todos** os usuários, pois a carteira é compartilhada.</p>
-            <div class="flex justify-end space-x-3">
-                <button id="cancel-delete" class="btn btn-secondary">Cancelar</button>
-                <button id="confirm-delete" class="btn btn-delete">Excluir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Container de Autenticação -->
-    <div id="auth-container" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-xl">
-        <h2 id="auth-title" class="text-2xl font-bold mb-6 text-center text-gray-800">Entrar</h2>
         <form id="auth-form" class="space-y-4">
             <div>
-                <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" id="auth-email" class="input-field" placeholder="seu.email@exemplo.com" required>
+                <label for="auth-email" class="sr-only">E-mail</label>
+                <input type="email" id="auth-email" required class="w-full text-base" placeholder="Seu e-mail" autocomplete="username">
             </div>
             <div>
-                <label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-                <input type="password" id="auth-password" class="input-field" placeholder="••••••••" required>
+                <label for="auth-password" class="sr-only">Senha</label>
+                <input type="password" id="auth-password" required class="w-full text-base" placeholder="Sua senha" autocomplete="current-password">
             </div>
-            <button type="submit" id="login-button" class="btn btn-primary w-full">Entrar</button>
+            <div id="auth-error-message" class="text-red-600 text-sm hidden"></div>
+
+            <button type="submit" id="auth-submit-btn" class="btn-primary w-full">
+                <span id="auth-btn-text">Entrar</span>
+                <svg id="auth-loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </button>
         </form>
-        <button id="auth-switch-mode" class="mt-4 text-sm w-full text-center text-[var(--primary)] hover:text-[var(--primary-dark)] transition-colors">
-            Não tem conta? Cadastre-se
-        </button>
     </div>
+  </div>
+  <!-- FIM TELA DE LOGIN/CADASTRO -->
 
-    <!-- Container da Aplicação (Visível após o login) -->
-    <div id="app-container" class="hidden">
-        <div class="flex justify-between items-center mb-6 p-4 bg-white rounded-xl shadow-lg">
-            <div class="flex flex-col sm:flex-row sm:items-center">
-                <p class="text-sm text-gray-500 mr-4">Logado como:</p>
-                <p id="user-email-display" class="font-medium text-gray-800 break-all"></p>
-                <!-- O ID do usuário logado é crucial para debug em apps colaborativos -->
-                <p id="user-id-display" class="text-xs text-gray-400 mt-1 sm:mt-0 sm:ml-4"></p>
-            </div>
-            <button id="logout-button" class="btn btn-secondary ml-4">Sair</button>
+  <!-- #app-container: APLICAÇÃO PRINCIPAL -->
+  <div id="app-container" class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 hidden flex-grow">
+    <header class="text-center mb-12 py-4 bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-xl shadow-xl flex flex-col md:flex-row justify-between items-center px-8">
+      <div class="text-left mb-4 md:mb-0">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white">Gerenciador de Investimentos</h1>
+        <p class="mt-1 text-sm sm:text-base text-indigo-100">
+            Logado como: <span id="user-email-display" class="font-bold"></span>
+        </p>
+      </div>
+      <button id="logout-button" class="btn-danger py-2.5 px-6 flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+          Sair
+      </button>
+    </header>
+
+    <!-- Seção de Cadastro -->
+    <section class="app-card mb-10">
+      <h2 class="text-2xl font-bold mb-6 border-b pb-3 text-indigo-700">Novo Investimento</h2>
+      <form id="investimentoForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- 1. Tipo de Investimento (Select) -->
+        <div>
+          <label for="nomeId" class="block text-sm font-semibold text-gray-700">Nome</label>
+          <select id="nomeId" name="nomeId" required class="mt-1 block w-full text-base sm:text-sm">
+            <option value="">Carregando...</option>
+          </select>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Coluna 1: Cadastro de Novo Investimento -->
-            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-xl h-fit">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800">Cadastrar Novo Investimento</h2>
-                <form id="investimentoForm" class="space-y-4">
+        <!-- 2. Taxa de Juros (Input) -->
+        <div>
+          <label for="taxaJuros" class="block text-sm font-semibold text-gray-700">Taxa Juros Mensal (%)</label>
+          <input type="number" step="0.01" id="taxaJuros" name="taxaJuros" required value="10.00" class="mt-1 block w-full sm:text-sm" placeholder="Ex: 10.00">
+          <p id="taxa_juros_error" class="mt-1 text-xs text-red-600"></p>
+        </div>
 
-                    <div>
-                        <label for="nomeTipo" class="block text-sm font-medium text-gray-700 mb-1">Nome/Tipo do Investimento</label>
-                        <select id="nomeTipo" class="input-field" required>
-                            <!-- Opções carregadas via JS -->
-                            <option value="" disabled selected>Carregando Tipos...</option>
-                        </select>
-                    </div>
+        <!-- 3. Valor Investido -->
+        <div>
+          <label for="valor" class="block text-sm font-semibold text-gray-700">Valor Investido (R$)</label>
+          <input type="text" id="valor" name="valor" required class="mt-1 block w-full sm:text-sm" placeholder="Ex: R$ 1.000,00">
+          <p id="valor_error" class="mt-1 text-xs text-red-600"></p>
+        </div>
 
-                    <div>
-                        <label for="taxaJuros" class="block text-sm font-medium text-gray-700 mb-1">Taxa de Juros Mensal (%)</label>
-                        <input type="number" id="taxaJuros" class="input-field" placeholder="Ex: 0.8" step="0.01" min="0" required>
-                    </div>
+        <!-- 4. Data de Início -->
+        <div>
+          <label for="entrada" class="block text-sm font-semibold text-gray-700">Data de Início</label>
+          <input type="date" id="entrada" name="entrada" required class="mt-1 block w-full sm:text-sm">
+        </div>
 
-                    <div>
-                        <label for="valor" class="block text-sm font-medium text-gray-700 mb-1">Valor Investido (R$)</label>
-                        <input type="text" id="valor" class="input-field" placeholder="R$ 1.000,00" required>
-                    </div>
+        <!-- 5. Data de Resgate -->
+        <div>
+          <label for="retorno" class="block text-sm font-semibold text-gray-700">Data de Resgate</label>
+          <input type="date" id="retorno" name="retorno" required class="mt-1 block w-full sm:text-sm">
+          <p id="resgate_error" class="mt-1 text-xs text-red-600"></p>
+        </div>
 
-                    <div>
-                        <label for="entrada" class="block text-sm font-medium text-gray-700 mb-1">Data de Início</label>
-                        <input type="date" id="entrada" class="input-field" required>
-                    </div>
-
-                    <div>
-                        <label for="retorno" class="block text-sm font-medium text-gray-700 mb-1">Data de Resgate Programado</label>
-                        <input type="date" id="retorno" class="input-field" required>
-                    </div>
-
-                    <!-- Campos de Cálculo Automático -->
-                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
-                        <div>
-                            <p class="text-sm font-medium text-gray-700">Prazo Total em Dias:</p>
-                            <p id="diasTotaisDisplay" class="font-bold text-lg text-[var(--primary)]">0 Dias</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-700">Valor de Resgate Estimado (Haver):</p>
-                            <p id="haverEstimadoDisplay" class="font-bold text-lg text-[var(--success)]">R$ 0,00</p>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-full">Adicionar Investimento</button>
-                </form>
-            </div>
-
-            <!-- Coluna 2 e 3: Gráfico e Lista de Investimentos -->
-            <div class="lg:col-span-2 space-y-8">
-                <!-- Resumo e Gráfico -->
-                <div class="bg-white p-6 rounded-xl shadow-xl">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Resumo da Carteira (Global)</h2>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div class="bg-[var(--primary)] text-white p-4 rounded-lg shadow-inner">
-                            <p class="text-sm opacity-90">Total Investido:</p>
-                            <p id="totalInvestidoDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
-                        </div>
-                        <div class="bg-[var(--success)] text-white p-4 rounded-lg shadow-inner">
-                            <p class="text-sm opacity-90">Total a Resgatar (Haver Estimado):</p>
-                            <p id="totalHaverDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
-                        </div>
-                    </div>
-                    
-                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Distribuição da Carteira (Gráfico)</h3>
-                    <div class="relative max-w-md mx-auto h-72">
-                        <canvas id="investimentoChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Lista de Investimentos -->
-                <div class="bg-white p-6 rounded-xl shadow-xl">
-                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Carteira Compartilhada</h2>
-                    <div id="investimento-list" class="space-y-4">
-                        <p class="text-gray-500 text-center py-4" id="loading-message">Carregando investimentos...</p>
-                        <!-- Investimentos serão listados aqui -->
-                    </div>
-                </div>
+        <!-- 6. Dias Totais para Resgate (Display) -->
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Prazo Total (Dias)</label>
+            <div id="dias-totais-display" class="mt-1 block w-full bg-indigo-50 text-indigo-700 font-extrabold text-lg p-3 rounded-lg border border-indigo-200">
+                0 dias
             </div>
         </div>
-    </div>
 
-  </main>
+        <!-- 7. Valor de Resgate (Haver) -->
+        <div>
+            <label for="haver" class="block text-sm font-semibold text-gray-700">Resgate Programado (R$)</label>
+            <input type="number" step="0.01" id="haver" name="haver" class="mt-1 block w-full bg-gray-100 text-gray-800 font-semibold sm:text-sm" placeholder="Automático (pode editar)" readonly>
+        </div>
 
-  <footer class="bg-white mt-8 p-4 text-center text-sm text-gray-500 border-t">
-    Gerenciador de Investimentos &copy; 2025 | Powered by Supabase & Chart.js
-  </footer>
+        <!-- 8. Botão de Cadastro -->
+        <div class="lg:col-span-1 flex justify-end items-end">
+          <button type="submit" class="btn-primary w-full md:w-auto h-[44px]">
+            <span id="submit-text">Cadastrar Investimento</span>
+            <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </section>
 
-  <!-- Bibliotecas JS -->
-  <!-- CORREÇÃO 3: Removido espaço extra -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <!-- Supabase CDN (Substituindo Firebase) -->
-  <!-- CORREÇÃO 4: Removido espaço extra -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Seção de Visualização -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- Gráfico de Pizza -->
+      <div class="app-card chart-container">
+        <h2 class="text-2xl font-bold mb-6 border-b pb-3 text-indigo-700">Distribuição da Carteira (Global)</h2>
+        <div class="h-full w-full flex items-center justify-center">
+            <canvas id="investimentoChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Lista de Investimentos -->
+      <div class="app-card">
+        <h2 class="text-2xl font-bold mb-6 border-b pb-3 text-indigo-700">Carteira Compartilhada</h2>
+
+        <div id="investimento-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+          <!-- Dados carregados aqui -->
+          <p id="loading-text" class="text-center text-gray-500 py-8">Faça login para ver os investimentos.</p>
+        </div>
+
+        <!-- Resumo Total -->
+        <div class="mt-6 pt-4 border-t border-gray-200">
+            <div class="space-y-2">
+                <p class="text-xl font-extrabold text-gray-800 flex justify-between">
+                    <span>Total Investido:</span>
+                    <span id="total-investido" class="text-indigo-600">R$ 0,00</span>
+                </p>
+                <p class="text-xl font-extrabold text-gray-800 flex justify-between">
+                    <span>Total a Resgatar:</span>
+                    <span id="total-haver" class="text-green-600">R$ 0,00</span>
+                </p>
+            </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Fim da Aplicação Principal -->
 
   <script type="module">
-    // Variáveis globais de ambiente (Assumindo que são fornecidas pelo ambiente)
-    // Usando variáveis globais simuladas para URL e chave anônima do Supabase
-    // CORREÇÃO 5: Removido espaço extra
-    const SUPABASE_URL = typeof __supabase_url !== 'undefined' ? __supabase_url : 'https://odaalhsghdmpyhgnblml.supabase.co';
-    // CORREÇÃO 6: Removido espaço extra
-    const SUPABASE_ANON_KEY = typeof __supabase_anon_key !== 'undefined' ? __supabase_anon_key : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYWFsaHNnaGRtcHloZ25ibG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzMyODUsImV4cCI6MjA3NjU0OTI4NX0.J3bgvqGOh2KsNPhuQbnAcGsmNnsqxktIygOpJqr1cHM';
 
-    // Constantes
-    const DIAS_NO_MES = 30.4375; // Média de dias por mês para cálculo de juros
-    const PRIMARY_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-    const SUCCESS_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--success').trim();
-    const ERROR_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--error').trim();
-    const COLORS = [PRIMARY_COLOR, SUCCESS_COLOR, '#3b82f6', '#f59e0b', '#14b8a6', '#8b5cf6', '#ec4899', '#f97316'];
+    // --- Configuração Supabase ---
+    // ATENÇÃO: Preencha com suas chaves.
+    const SUPABASE_URL = 'https://odaalhsghdmpyhgnblml.supabase.co'; // COLOQUE SEU URL AQUI
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYWFsaHNnaGRtcHloZ25ibG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzMyODUsImV4cCI6MjA3NjU0OTI4NX0.J3bgvqGOh2KsNPhuQbnAcGsmNnsqxktIygOpJqr1cHM'; // COLOQUE SUA CHAVE ANON AQUI
 
-    // Instâncias Supabase
-    // Renomeado para supabaseClient para evitar conflito com o objeto global Supabase
-    let supabaseClient = null; 
-    let currentUserId = null; 
-    let investmentChart = null;
-    let investmentToDeleteId = null; // ID do investimento para exclusão
-    // --- ADICIONADO: Variável para armazenar o canal de Realtime ---
-    let realtimeChannel = null;
-    // --- FIM DAS ALTERAÇÕES ---
+    let supabase = null;
+    let supabaseConfigured = false;
+    // currentUserId é mantido apenas para referência, mas não será usado para filtrar dados.
+    let currentUserId = null;
 
-    // Nomes das tabelas
-    const TABLE_INVESTIMENTOS = 'INVESTIMENTO';
-    const TABLE_NOMES = 'NOMES';
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+        // Inicialização do Supabase Client
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseConfigured = true;
+    } else {
+        console.error("ERRO DE CONFIGURAÇÃO: Por favor, configure SUPABASE_URL e SUPABASE_ANON_KEY no código-fonte.");
+    }
+
+    let investmentToDeleteId = null;
+    let investimentoChart;
+    let authMode = 'login'; // 'login' ou 'signup'
+
+    const DIAS_NO_MES = 30.4375;
+
+    // Elementos do DOM
+    const appContainer = document.getElementById('app-container');
+    const authContainer = document.getElementById('auth-container');
+    const submitButton = document.getElementById('investimentoForm').querySelector('button[type="submit"]');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const submitText = document.getElementById('submit-text');
+    const authSubmitBtn = document.getElementById('auth-submit-btn');
+    const authBtnText = document.getElementById('auth-btn-text');
+    const authLoadingSpinner = document.getElementById('auth-loading-spinner');
+    const authErrorMessage = document.getElementById('auth-error-message');
 
 
-    // --- UTILS ---
-
-    // Função para exibir mensagem de feedback (Toast)
+    // Função para exibir mensagem de feedback (sucesso/erro)
     function showFeedback(message, type = 'success') {
         const feedbackEl = document.getElementById('feedback-message');
-        const textEl = document.getElementById('feedback-text');
+        feedbackEl.textContent = message;
 
-        if (!feedbackEl || !textEl) {
-            console.error("Elementos de feedback (Toast) não encontrados.");
-            return; 
+        feedbackEl.className = 'fixed top-5 right-5 p-4 rounded-xl shadow-2xl text-white transform transition-transform duration-500 z-50';
+
+        if (type === 'success') {
+            feedbackEl.classList.add('bg-green-600', 'translate-x-0');
+        } else {
+            feedbackEl.classList.add('bg-red-600', 'translate-x-0');
         }
 
-        const classes = {
-            'success': 'bg-[var(--success)] text-white',
-            'error': 'bg-[var(--error)] text-white',
-            'info': 'bg-[var(--primary)] text-white'
-        };
+        feedbackEl.classList.remove('hidden', 'translate-x-full');
 
-        // Resetar classes e aplicar novas
-        feedbackEl.className = 'fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 max-w-sm';
-        
-        // CORREÇÃO: Usar split(' ') e spread para adicionar cada classe separadamente
-        const classListToAdd = (classes[type] || classes['info']).split(' ');
-        feedbackEl.classList.add(...classListToAdd); // Aplica as classes de cor e texto
-
-        textEl.textContent = message;
-
-        // Mostrar
         setTimeout(() => {
-            feedbackEl.classList.add('show', 'opacity-100');
-        }, 10);
-
-        // Esconder após 4 segundos
-        setTimeout(() => {
-            feedbackEl.classList.remove('show', 'opacity-100');
-        }, 4000);
-    }
-    
-    // Função para formatar números como moeda brasileira
-    function formatarMoeda(valor) {
-        if (typeof valor !== 'number') return 'R$ 0,00';
-        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
-    
-    // Função para formatar o input de moeda em tempo real
-    function formatarInputMoeda(e) {
-        let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
-        
-        let floatValue = parseFloat(value) / 100;
-        
-        e.target.value = floatValue.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-            minimumFractionDigits: 2
-        }).replace('R$', '').trim();
+            feedbackEl.classList.add('translate-x-full');
+            feedbackEl.classList.remove('translate-x-0');
+            setTimeout(() => {
+                 feedbackEl.classList.add('hidden');
+            }, 500);
+        }, 5000);
     }
 
-    // Função que calcula o haver (resgate estimado) usando juros compostos
-    function calcularHaver(valor, taxaMensal, diasTotais) {
-        if (diasTotais <= 0 || valor <= 0 || taxaMensal <= 0) return 0;
+    // --- LÓGICA DE AUTENTICAÇÃO ---
 
-        const meses = diasTotais / DIAS_NO_MES;
-        const taxaDecimal = taxaMensal / 100;
-        
-        // Fórmula de juros compostos: M = C * (1 + i)^t
-        const haver = valor * Math.pow((1 + taxaDecimal), meses);
-        return haver;
-    }
-
-    // Função que calcula e exibe o haver e o prazo total
-    function calcularEExibirHaverEDias() {
-        const valorInput = document.getElementById('valor')?.value;
-        const taxaInput = parseFloat(document.getElementById('taxaJuros')?.value);
-        const entradaInput = document.getElementById('entrada')?.value;
-        const retornoInput = document.getElementById('retorno')?.value;
-
-        const diasDisplay = document.getElementById('diasTotaisDisplay');
-        const haverDisplay = document.getElementById('haverEstimadoDisplay');
-
-        if (!valorInput || !taxaInput || !entradaInput || !retornoInput || !diasDisplay || !haverDisplay) {
-            if (diasDisplay) diasDisplay.textContent = '0 Dias';
-            if (haverDisplay) haverDisplay.textContent = 'R$ 0,00';
-            return;
-        }
-
-        // 1. Converter o valor do input (R$ X.XXX,XX) para número
-        const valorNumerico = parseFloat(valorInput.replace(/[R$.]/g, '').replace(',', '.'));
-        
-        // 2. Calcular Dias Totais
-        let diasTotais = 0;
-        const dataInicio = new Date(entradaInput);
-        const dataResgate = new Date(retornoInput);
-            
-        const diffTime = Math.abs(dataResgate.getTime() - dataInicio.getTime());
-        diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        // 3. Calcular Haver
-        let haver = 0;
-        if (valorNumerico > 0 && taxaInput > 0 && diasTotais > 0) {
-            haver = calcularHaver(valorNumerico, taxaInput, diasTotais);
-        }
-
-        // 4. Exibir resultados
-        diasDisplay.textContent = `${diasTotais} Dias`;
-        haverDisplay.textContent = formatarMoeda(haver);
-    }
-
-    // --- SUPABASE / AUTH ---
-
-    // Inicialização do Supabase e Autenticação
-    async function initializeSupabase() {
-        try {
-            if (SUPABASE_URL.includes('your-supabase-url') || SUPABASE_ANON_KEY.includes('your-anon-key')) {
-                console.error("Supabase Configuração não definida. Por favor, forneça as chaves SUPABASE_URL e SUPABASE_ANON_KEY.");
-                showFeedback('Erro de configuração: Chaves do Supabase não definidas.', 'error');
-                return;
-            }
-            
-            // CORREÇÃO DO ERRO 1: Chama createClient no objeto global window.supabase e armazena na variável local supabaseClient
-            if (window.supabase && typeof window.supabase.createClient === 'function') {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else {
-                console.error("Supabase CDN não carregado corretamente. 'window.supabase.createClient' não é uma função.");
-                showFeedback('Erro fatal: Supabase CDN não carregado. Verifique a conexão.', 'error');
-                return;
-            }
-            
-            // Listener de estado de autenticação (Substitui onAuthStateChanged)
-            supabaseClient.auth.onAuthStateChange((event, session) => {
-                const authContainer = document.getElementById('auth-container');
-                const appContainer = document.getElementById('app-container');
-                const user = session?.user;
-
-                if (user) {
-                    currentUserId = user.id;
-                    const emailDisplay = document.getElementById('user-email-display');
-                    const idDisplay = document.getElementById('user-id-display');
-                    
-                    if (emailDisplay) emailDisplay.textContent = user.email || 'Anônimo';
-                    if (idDisplay) idDisplay.textContent = `ID: ${user.id}`;
-                    
-                    if (authContainer) authContainer.classList.add('hidden');
-                    if (appContainer) appContainer.classList.remove('hidden');
-                    loadNames(); // Carregar nomes após login
-                    // --- ADICIONADO: Iniciar o listener de dados realtime ---
-                    startDataListener();
-                    // --- FIM DAS ALTERAÇÕES ---
-                } else {
-                    currentUserId = null;
-                    // --- ADICIONADO: Desinscrever do canal de realtime ao sair ---
-                    if (realtimeChannel) {
-                        supabaseClient.removeChannel(realtimeChannel);
-                        realtimeChannel = null;
-                    }
-                    // --- FIM DAS ALTERAÇÕES ---
-                    if (authContainer) authContainer.classList.remove('hidden');
-                    if (appContainer) appContainer.classList.add('hidden');
-                }
-            });
-
-        } catch (error) {
-            console.error("Erro na inicialização do Supabase:", error);
-            showFeedback('Erro ao iniciar a aplicação. Verifique a configuração do Supabase.', 'error');
-        }
-    }
-
-    // Gerenciar Login/Cadastro
-    async function handleAuth(email, password) {
-        if (!supabaseClient) return;
-
-        const titleEl = document.getElementById('auth-title');
-        const submitButton = document.getElementById('login-button');
-        if (!titleEl || !submitButton) return;
-
-        const isLogin = titleEl.textContent === 'Entrar';
-        submitButton.disabled = true;
-        submitButton.textContent = isLogin ? 'Entrando...' : 'Cadastrando...';
-
-        try {
-            let result;
-            if (isLogin) {
-                // Login
-                result = await supabaseClient.auth.signInWithPassword({ email, password });
-            } else {
-                // Cadastro (Sign Up)
-                result = await supabaseClient.auth.signUp({ email, password });
-            }
-
-            if (result.error) throw result.error;
-            
-            // Sucesso
-            if (isLogin) {
-                showFeedback('Login realizado com sucesso!');
-            } else {
-                // Nota: O Supabase por padrão envia um email de confirmação.
-                // Aqui simplificamos a experiência de imediato.
-                showFeedback('Conta criada com sucesso! Verifique seu email para confirmação (se RLS estiver ativo).', 'success');
-            }
-            
-        } catch (error) {
-            console.error("Erro de autenticação Supabase:", error);
-            let errorMessage = "Ocorreu um erro de autenticação.";
-            // Mensagens de erro mais específicas do Supabase (postgres/auth)
-            if (error.message.includes('AuthApiError')) {
-                errorMessage = 'Credenciais inválidas ou conta não confirmada.';
-            } else if (error.message.includes('Password should be at least 6 characters')) {
-                errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
-            } else if (error.code === '23505') { // Código de erro comum de violação de restrição de unicidade (e-mail já existe)
-                errorMessage = 'Este email já está cadastrado. Tente fazer login.';
-            } else {
-                errorMessage = error.message;
-            }
-
-            showFeedback(errorMessage, 'error');
-        } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = isLogin ? 'Entrar' : 'Cadastrar';
-        }
-    }
-
-    // Mudar entre Login e Cadastro
+    /**
+     * Alterna entre modo Login e Cadastro.
+     */
     function toggleAuthMode() {
         const title = document.getElementById('auth-title');
-        const button = document.getElementById('login-button');
-        const link = document.getElementById('auth-switch-mode');
-        if (!title || !button || !link) return;
+        const switchText = document.getElementById('auth-switch-text');
+        const switchButton = document.getElementById('auth-switch-mode');
 
-        const isLogin = title.textContent === 'Entrar';
-
-        if (isLogin) {
-            title.textContent = 'Criar Conta';
-            button.textContent = 'Cadastrar';
-            link.textContent = 'Já tem conta? Entrar';
+        if (authMode === 'login') {
+            authMode = 'signup';
+            title.textContent = 'Crie sua Conta';
+            authBtnText.textContent = 'Cadastrar';
+            switchText.textContent = 'Já tem conta?';
+            switchButton.textContent = 'Faça login aqui';
         } else {
-            title.textContent = 'Entrar';
-            button.textContent = 'Entrar';
-            link.textContent = 'Não tem conta? Cadastre-se';
+            authMode = 'login';
+            title.textContent = 'Acesse sua Carteira';
+            authBtnText.textContent = 'Entrar';
+            switchText.textContent = 'Não tem conta?';
+            switchButton.textContent = 'Crie sua conta aqui';
         }
+        document.getElementById('auth-form').reset();
+        authErrorMessage.classList.add('hidden');
     }
 
-    // Logout
-    async function handleLogout() {
-        if (!supabaseClient) return;
+    /**
+     * Processa o Login ou Cadastro.
+     */
+    async function handleAuth(email, password) {
+        authSubmitBtn.disabled = true;
+        authBtnText.classList.add('hidden');
+        authLoadingSpinner.classList.remove('hidden');
+        authErrorMessage.classList.add('hidden');
 
-        try {
-            const { error } = await supabaseClient.auth.signOut();
-            if (error) throw error;
-            showFeedback('Você saiu da conta.', 'info');
-            // O onAuthStateChange cuidará da transição de UI
-        } catch (error) {
-            console.error("Erro ao fazer logout:", error);
-            showFeedback('Erro ao fazer logout.', 'error');
+        let response;
+        if (authMode === 'login') {
+            response = await supabase.auth.signInWithPassword({ email, password });
+        } else {
+            // Apenas email/password, sem provedores externos
+            response = await supabase.auth.signUp({ email, password });
         }
-    }
 
-    // --- DATA / SUPABASE POSTGRES ---
+        authSubmitBtn.disabled = false;
+        authBtnText.classList.remove('hidden');
+        authLoadingSpinner.classList.add('hidden');
 
-    // Carregar Nomes/Tipos de Investimento (Tabela de Referência)
-    async function loadNames() {
-        if (!supabaseClient) return;
-        const selectEl = document.getElementById('nomeTipo');
-        if (!selectEl) return;
-        selectEl.innerHTML = `<option value="" disabled selected>Carregando Tipos...</option>`; // Limpar e mostrar loading
-
-        try {
-            // Tentar buscar nomes
-            let { data: nomes, error } = await supabaseClient
-                .from(TABLE_NOMES)
-                .select('nome')
-                .order('nome', { ascending: true });
-
-            if (error) throw error;
-
-            if (!nomes || nomes.length === 0) {
-                // Se a tabela estiver vazia, inserir valores iniciais (Mocados)
-                const initialNames = [
-                    { nome: "Ações" },
-                    { nome: "Renda Fixa" },
-                    { nome: "FIIs" },
-                    { nome: "Criptomoedas" }
-                ];
-                await supabaseClient.from(TABLE_NOMES).insert(initialNames);
-                nomes = initialNames; // Usar a lista recém-criada
+        if (response.error) {
+            authErrorMessage.textContent = response.error.message;
+            authErrorMessage.classList.remove('hidden');
+            console.error('Auth Error:', response.error);
+        } else if (authMode === 'signup' && !response.data.user) {
+             // Caso de signUp com RLS ativado (requer confirmação de email)
+             showFeedback('Verifique seu email para confirmar a conta antes de fazer o login.', 'success');
+        } else {
+            // Sucesso! onAuthStateChange cuidará do resto.
+            // Se o signup for bem-sucedido e o usuário logar automaticamente (padrão Supabase sem confirmação de e-mail),
+            // a mensagem de login/cadastro é mostrada.
+            document.getElementById('auth-form').reset();
+            if (authMode === 'signup' && response.data.user) {
+                showFeedback('Conta criada com sucesso! Você foi logado automaticamente.', 'success');
+            } else if (authMode === 'login') {
+                showFeedback('Login realizado com sucesso!', 'success');
             }
-            
-            // Renderizar opções
-            selectEl.innerHTML = '<option value="" disabled selected>Selecione um Tipo</option>';
-            nomes.forEach(item => {
-                selectEl.innerHTML += `<option value="${item.nome}">${item.nome}</option>`;
-            });
-
-            selectEl.removeAttribute('disabled');
-        } catch (error) {
-            console.error("Erro ao carregar nomes de investimento Supabase:", error);
-            selectEl.innerHTML = `<option value="" disabled selected>Erro ao carregar tipos</option>`;
-            showFeedback('Erro ao carregar a lista de tipos de investimento.', 'error');
         }
     }
 
-    // Adicionar novo investimento
-    async function adicionarInvestimento(e) {
-        e.preventDefault();
+    /**
+     * Configura o listener para alternar as telas de login/app.
+     */
+    function setupAuthListener() {
+        if (!supabaseConfigured) return;
 
-        if (!currentUserId) {
-            showFeedback('Erro: Usuário não autenticado. Faça login para adicionar.', 'error');
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                currentUserId = session.user.id;
+                console.log('User signed in:', currentUserId);
+
+                authContainer.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+
+                // Carrega dados (compartilhados por todos)
+                carregarNomes();
+                carregarDados();
+
+                // Atualiza o email
+                const emailDisplay = document.getElementById('user-email-display');
+                if (emailDisplay) emailDisplay.textContent = session.user.email;
+
+            } else {
+                currentUserId = null;
+                console.log('User signed out.');
+                appContainer.classList.add('hidden');
+                authContainer.classList.remove('hidden');
+
+                // Limpa listas e gráficos
+                if (investimentoChart) {
+                    investimentoChart.destroy();
+                    investimentoChart = null;
+                }
+                document.getElementById('investimento-list').innerHTML = '<p id="loading-text" class="text-center text-gray-500 py-8">Faça login para ver os investimentos.</p>';
+                document.getElementById('total-investido').textContent = formatarMoeda(0);
+                document.getElementById('total-haver').textContent = formatarMoeda(0);
+            }
+        });
+    }
+
+    /**
+     * Função para Logout
+     */
+    async function handleLogout() {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Logout Error:', error);
+            showFeedback('Erro ao sair: ' + error.message, 'error');
+        } else {
+            showFeedback('Logout realizado com sucesso!');
+        }
+    }
+
+    // --- FIM LÓGICA DE AUTENTICAÇÃO ---
+
+
+    // Função para calcular dias entre duas datas
+    const calcularDias = (data1, data2) => {
+        const d1 = new Date(data1);
+        const d2 = new Date(data2);
+        const diffTime = Math.abs(d2.getTime() - d1.getTime());
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    };
+
+    // Função para formatar moeda brasileira
+    const formatarMoeda = (valor) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+        }).format(valor);
+    };
+
+    // FUNÇÃO CRÍTICA: Obtém o valor numérico de um campo formatado
+    const getValorNumerico = (valorFormatado) => {
+        if (!valorFormatado) return 0;
+        let cleaned = valorFormatado.replace(/[^0-9,]/g, '');
+        cleaned = cleaned.replace(',', '.');
+        return parseFloat(cleaned) || 0;
+    };
+
+    /**
+     * Função para formatar o campo de input em tempo real (Padrão: R$ X.XXX,XX)
+     */
+    function formatarInputMoeda(e) {
+        let value = e.target.value;
+        value = value.replace(/\D/g, '').slice(0, 18);
+
+        if (!value) {
+            e.target.value = '';
             return;
         }
 
-        const form = e.target;
-        const nomeTipo = form.nomeTipo.value;
-        const taxaJuros = parseFloat(form.taxaJuros.value);
-        const valorInput = form.valor.value;
-        const dataInicio = form.entrada.value;
-        const dataResgate = form.retorno.value;
+        const paddedValue = value.padStart(3, '0');
+        const centavos = paddedValue.slice(-2);
+        let reais = parseInt(paddedValue.slice(0, -2), 10).toString();
 
-        const valorNumerico = parseFloat(valorInput.replace(/[R$.]/g, '').replace(',', '.'));
-        
-        const dataInic = new Date(dataInicio);
-        const dataResg = new Date(dataResgate);
-        const diffTime = Math.abs(dataResg.getTime() - dataInic.getTime());
-        const diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const haver = calcularHaver(valorNumerico, taxaJuros, diasTotais);
+        reais = reais.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-        if (haver === 0) {
-             showFeedback('Verifique os valores de Juros, Valor e Datas. Haver estimado não pode ser zero.', 'error');
+        const formattedValue = `R$ ${reais},${centavos}`;
+        e.target.value = formattedValue;
+    }
+
+
+    // Função para calcular o haver (juros composto dinâmico) e os dias totais e atualiza a UI
+    function calcularEExibirHaverEDias() {
+        const valorEl = document.getElementById('valor');
+        const entradaEl = document.getElementById('entrada');
+        const retornoEl = document.getElementById('retorno');
+        const haverEl = document.getElementById('haver');
+        const diasDisplayEl = document.getElementById('dias-totais-display');
+        const taxaJurosEl = document.getElementById('taxaJuros');
+
+        const valor = getValorNumerico(valorEl.value);
+        const taxaJurosPercentual = parseFloat(taxaJurosEl.value);
+        const dataInicio = entradaEl.value;
+        const dataResgate = retornoEl.value;
+
+        document.getElementById('taxa_juros_error').textContent = '';
+        haverEl.value = '';
+        diasDisplayEl.textContent = '0 dias';
+
+        if (taxaJurosPercentual <= 0 || isNaN(taxaJurosPercentual)) {
+            document.getElementById('taxa_juros_error').textContent = 'A taxa deve ser positiva.';
+            return;
+        }
+
+        const taxaMensalDecimal = taxaJurosPercentual / 100;
+
+        if (!valor || valor <= 0 || !dataInicio || !dataResgate) {
+            return;
+        }
+
+        if (new Date(dataInicio) >= new Date(dataResgate)) {
+             document.getElementById('resgate_error').textContent = 'A data de resgate deve ser posterior à data de início.';
              return;
         }
+        document.getElementById('resgate_error').textContent = '';
 
-        const submitButton = form.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Adicionando...';
-        
-        try {
-                        const { error } = await supabaseClient
-                .from(TABLE_INVESTIMENTOS)
-                .insert([{
-                    nome: nomeTipo,
-                    valor: valorNumerico,
-                    entrada: dataInicio,
-                    retorno: dataResgate,
-                    haver: haver,
-                }]);
 
-            if (error) throw error;
+        const diasTotais = calcularDias(dataInicio, dataResgate);
+        diasDisplayEl.textContent = `${diasTotais} dias`;
 
-            showFeedback('Investimento adicionado com sucesso!');
-            form.reset();
-            const diasDisplay = document.getElementById('diasTotaisDisplay');
-            const haverDisplay = document.getElementById('haverEstimadoDisplay');
-            if (diasDisplay) diasDisplay.textContent = '0 Dias';
-            if (haverDisplay) haverDisplay.textContent = 'R$ 0,00';
+        const meses = diasTotais / DIAS_NO_MES;
 
-            // A atualização agora é feita automaticamente pelo Realtime listener
-            // fetchAndRenderData(); // Esta linha NÃO é mais necessária aqui
+        const haverCalculado = valor * Math.pow((1 + taxaMensalDecimal), meses);
 
-        } catch (error) {
-            console.error("Erro ao adicionar investimento Supabase:", error);
-            showFeedback('Erro ao adicionar investimento. Tente novamente.', 'error');
-        } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Adicionar Investimento';
-        }
-    }
-    
-    // Funções de Modal e Deleção (mantidas)
-
-    function showDeleteConfirmation(id) {
-        const modal = document.getElementById('delete-modal');
-        if (!modal) return;
-        investmentToDeleteId = id;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        haverEl.value = haverCalculado.toFixed(2);
     }
 
-    function hideDeleteConfirmation() {
-        const modal = document.getElementById('delete-modal');
-        if (!modal) return;
-        investmentToDeleteId = null;
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+    // Função para carregar os tipos de investimento (da tabela NOMES)
+    async function carregarNomes() {
+        const selectElement = document.getElementById('nomeId');
 
-    async function deletarInvestimento(id) {
-        if (!supabaseClient) return;
+        selectElement.innerHTML = '<option value="">Carregando...</option>';
 
-        try {
-            const { error } = await supabaseClient
-                .from(TABLE_INVESTIMENTOS)
-                .delete()
-                .eq('id', id); // Filtra pelo ID
-
-            if (error) throw error;
-            showFeedback('Investimento excluído com sucesso!', 'info');
-            // A atualização agora é feita automaticamente pelo Realtime listener
-            // fetchAndRenderData(); // Esta linha NÃO é mais necessária aqui
-        } catch (error) {
-            console.error("Erro ao deletar investimento Supabase:", error);
-            showFeedback('Erro ao excluir investimento. Tente novamente.', 'error');
-        }
-    }
-
-    // --- ADICIONADO: Função para iniciar o listener de dados realtime ---
-    function startDataListener() {
-        if (!supabaseClient) return;
-
-        // 1. Terminar subscrição anterior, se houver
-        if (realtimeChannel) {
-            supabaseClient.removeChannel(realtimeChannel);
-        }
-
-        const loadingMessage = document.getElementById('loading-message');
-        if (loadingMessage) loadingMessage.textContent = 'Carregando investimentos...';
-
-        // 2. Criar novo canal de Realtime
-        realtimeChannel = supabaseClient
-            .channel('investimento_changes')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: TABLE_INVESTIMENTOS }, // Escuta por qualquer evento (INSERT, UPDATE, DELETE)
-                (payload) => {
-                    console.log('Realtime change received!', payload.eventType, payload.new || payload.old);
-                    // Quando uma mudança ocorre, re-busca todos os dados para garantir a consistência e ordenação
-                    fetchAndRenderData();
-                }
-            )
-            .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('Realtime Subscribed.');
-                    fetchAndRenderData(); // Busca inicial após subscrição
-                } else if (status === 'CHANNEL_ERROR') {
-                    console.error('Realtime Channel Error');
-                    if (loadingMessage) loadingMessage.textContent = 'Erro de Realtime. Tentando nova busca...';
-                    fetchAndRenderData(); // Tenta buscar de forma estática
-                }
-            });
-    }
-    // --- FIM DAS ALTERAÇÕES ---
-
-
-    // --- ALTERADO: Função para buscar e renderizar dados (usada na inicialização e em eventos Realtime) ---
-    // Removido o parâmetro 'forceRefresh' pois o Realtime cuida disso automaticamente.
-    async function fetchAndRenderData() {
-        if (!supabaseClient) return;
-        const loadingMessage = document.getElementById('loading-message');
-
-        try {
-            // Buscar todos os investimentos, ordenados por data de resgate
-            const { data: investimentos, error } = await supabaseClient
-                .from(TABLE_INVESTIMENTOS)
-                .select('*')
-                .order('retorno', { ascending: true });
-
-            if (error) throw error;
-
-            renderInvestments(investimentos);
-            updateSummaryAndChart(investimentos);
-
-            if (investimentos.length === 0) {
-                 if (loadingMessage) loadingMessage.textContent = 'Nenhum investimento encontrado. Adicione um novo abaixo.';
-            } else {
-                 if (loadingMessage) loadingMessage.textContent = '';
-            }
-        } catch (error) {
-            console.error("Erro ao buscar dados Supabase:", error);
-            showFeedback('Erro ao buscar dados do Supabase. Verifique RLS ou conexão.', 'error');
-            if (loadingMessage) loadingMessage.textContent = 'Erro ao carregar dados.';
-        }
-    }
-    // --- FIM DAS ALTERAÇÕES ---
-
-
-    // --- RENDERING & CHART ---
-
-    // Renderizar a lista de investimentos (mantida)
-    function renderInvestments(investimentos) {
-        const listEl = document.getElementById('investimento-list');
-        if (!listEl) return;
-        listEl.innerHTML = ''; 
-
-        if (investimentos.length === 0) {
-            listEl.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhum investimento registrado na carteira compartilhada.</p>';
+        if (!supabaseConfigured) {
+            selectElement.innerHTML = '<option value="">ERRO: Configurar Supabase!</option>';
             return;
         }
 
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0); 
+        // Buscando nomes (assumindo que a tabela NOMES é de acesso público/autenticado)
+        const { data, error } = await supabase
+            .from('NOMES')
+            .select('nome');
 
-        // Os dados já devem vir ordenados do fetchAndRenderData/Supabase
+        if (error) {
+            console.error('Erro ao carregar tipos de investimento:', error);
+            showFeedback('Erro ao carregar tipos: Verifique se a tabela NOMES existe. Detalhe: ' + error.message, 'error');
+            return;
+        }
+
+        selectElement.innerHTML = '<option value="">Selecione</option>';
+        if (data && data.length > 0) {
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.nome;
+                option.textContent = item.nome;
+                selectElement.appendChild(option);
+            });
+        } else {
+            selectElement.innerHTML = '<option value="">Nenhum tipo encontrado</option>';
+            showFeedback('Nenhum tipo de investimento encontrado na tabela NOMES. Crie alguns!', 'error');
+        }
+    }
+
+    // Função para carregar e exibir **todos** os dados dos investimentos (sem filtro de user_id)
+    async function carregarDados() {
+        if (!currentUserId) {
+            document.getElementById('loading-text').textContent = 'Faça login para ver os investimentos.';
+            return;
+        }
+
+        const listContainer = document.getElementById('investimento-list');
+        let loadingText = document.getElementById('loading-text');
+
+        if (!supabaseConfigured) {
+            if (loadingText) loadingText.textContent = 'Erro de Configuração do Supabase.';
+            return;
+        }
+
+        loadingText.classList.remove('hidden');
+        loadingText.textContent = 'Carregando investimentos...';
+
+        // Limpa a lista
+        Array.from(listContainer.children).forEach(child => {
+            if (child.id !== 'loading-text') {
+                listContainer.removeChild(child);
+            }
+        });
+
+        // CRÍTICO: Consulta SEM filtro de user_id. Retorna todos os dados para usuários logados.
+        const { data: investimentos, error } = await supabase.from('INVESTIMENTO').select(`
+            id,
+            nome,
+            valor,
+            entrada,
+            retorno,
+            haver
+        `)
+        .order('retorno', { ascending: true });
+
+        if (error) {
+            console.error('Erro ao carregar investimentos:', error);
+            loadingText.textContent = `Erro ao carregar: ${error.message}. Verifique as políticas RLS na tabela INVESTIMENTO.`;
+            showFeedback('Erro ao carregar investimentos: ' + error.message, 'error');
+            return;
+        }
+
+        loadingText.classList.add('hidden');
+
+        if (!investimentos || investimentos.length === 0) {
+            loadingText.textContent = 'Nenhum investimento registrado ainda.';
+            loadingText.classList.remove('hidden');
+            atualizarGrafico([], []);
+            document.getElementById('total-investido').textContent = formatarMoeda(0);
+            document.getElementById('total-haver').textContent = formatarMoeda(0);
+            return;
+        }
+
+        let totalInvestido = 0;
+        let totalHaver = 0;
+        const dadosGrafico = {};
+
         investimentos.forEach(inv => {
-            const dataRetorno = new Date(inv.retorno);
-            dataRetorno.setHours(0, 0, 0, 0);
+            const nomeInvestimento = inv.nome;
+            const valor = parseFloat(inv.valor || 0);
+            const haver = parseFloat(inv.haver || 0);
 
-            const diffTime = dataRetorno.getTime() - hoje.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            let statusText, statusClass;
+            totalInvestido += valor;
+            totalHaver += haver;
 
-            if (diffDays < 0) {
-                statusText = 'Vencido';
-                statusClass = 'bg-red-100 text-[var(--error)]';
-            } else if (diffDays === 0) {
-                statusText = 'Hoje';
-                statusClass = 'bg-yellow-100 text-yellow-700';
-            } else if (diffDays <= 30) {
-                statusText = `Próximo (${diffDays} dias)`;
-                statusClass = 'bg-yellow-100 text-yellow-700';
+            if (dadosGrafico[nomeInvestimento]) {
+                dadosGrafico[nomeInvestimento] += valor;
             } else {
-                statusText = `Distantes (${diffDays} dias)`;
-                statusClass = 'bg-green-100 text-[var(--success)]';
+                dadosGrafico[nomeInvestimento] = valor;
             }
 
-            const card = document.createElement('div');
-            card.className = 'bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow';
-            card.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <h4 class="text-lg font-bold text-gray-800">${inv.nome}</h4>
-                    <span class="text-xs font-semibold px-3 py-1 rounded-full ${statusClass}">${statusText}</span>
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'investment-item';
+
+            const hoje = new Date();
+            const dataRetorno = new Date(inv.retorno + 'T00:00:00');
+            const diffTime = dataRetorno.getTime() - hoje.getTime();
+            let diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let statusClass, statusText;
+
+            if (diasRestantes < 0) {
+                statusClass = 'btn-status-vencido';
+                statusText = 'Vencido';
+            } else if (diasRestantes === 0) {
+                statusClass = 'btn-status-hoje';
+                statusText = 'Hoje';
+            } else if (diasRestantes <= 30) {
+                statusClass = 'btn-status-proximo';
+                statusText = `${diasRestantes} dias restantes`;
+            } else {
+                statusClass = 'btn-status-distantes';
+                statusText = `${diasRestantes} dias restantes`;
+            }
+
+            itemDiv.innerHTML = `
+                <div class="flex-grow">
+                    <div class="font-extrabold text-xl text-indigo-800">${nomeInvestimento}</div>
+                    <div class="text-base text-gray-600 mt-1">
+                        <span class="font-medium text-gray-800">Investido:</span> ${formatarMoeda(valor)}
+                        <span class="mx-2 text-gray-400">|</span>
+                        <span class="font-medium text-gray-800">Resgate Estimado:</span> <span class="text-green-600 font-bold">${formatarMoeda(haver)}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">
+                        Início: ${new Date(inv.entrada + 'T00:00:00').toLocaleDateString('pt-BR')} | Resgate: ${new Date(inv.retorno + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
-                    <p><span class="font-medium">Investido:</span> <span class="text-[var(--primary)] font-semibold">${formatarMoeda(inv.valor)}</span></p>
-                    <p><span class="font-medium">Resgate Est.:</span> <span class="text-[var(--success)] font-semibold">${formatarMoeda(inv.haver)}</span></p>
-                    <p class="col-span-2"><span class="font-medium">Juros Mensal:</span> ${inv.taxaJuros}%</p>
-                    <p><span class="font-medium">Início:</span> ${inv.entrada}</p>
-                    <p><span class="font-medium">Resgate:</span> ${inv.retorno}</p>
-                    <!-- Exibe o ID completo do criador (deve ser 'criado_por') -->
-                    <p class="col-span-2 text-xs text-gray-400 mt-1 break-words">Criado por: ${inv.criado_por}</p>
-                </div>
-                <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-                    <!-- Icone de lixeira adicionado ao botão de exclusão, junto com a palavra "Excluir" -->
-                    <button data-id="${inv.id}" class="btn-delete text-sm py-1 px-3 flex items-center space-x-1">
-                        <i class="fas fa-trash-alt"></i>
-                        <span>Excluir</span>
+                <div class="flex flex-col items-end flex-shrink-0 ml-4">
+                    <span class="btn-status ${statusClass} mb-3">${statusText}</span>
+                    <button data-id="${inv.id}" class="text-red-500 hover:text-red-700 text-sm font-semibold transition duration-150">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </div>
             `;
-            
-            // Adicionar listener de exclusão
-            const deleteBtn = card.querySelector('.btn-delete');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', (e) => {
-                    // O ID do Supabase pode ser um número ou string dependendo da coluna PK
-                    const id = e.currentTarget.getAttribute('data-id');
-                    showDeleteConfirmation(id);
-                });
-            }
+            listContainer.appendChild(itemDiv);
+        });
 
-            listEl.appendChild(card);
+        document.getElementById('total-investido').textContent = formatarMoeda(totalInvestido);
+        document.getElementById('total-haver').textContent = formatarMoeda(totalHaver);
+        atualizarGrafico(Object.keys(dadosGrafico), Object.values(dadosGrafico));
+
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                showDeleteConfirmation(id);
+            });
         });
     }
 
-    // Atualizar o resumo e o gráfico (mantida)
-    function updateSummaryAndChart(investimentos) {
-        let totalInvestido = 0;
-        let totalHaver = 0;
-        const dataForChart = {};
+    // --- Funções do Modal de Exclusão ---
+    function showDeleteConfirmation(id) {
+        investmentToDeleteId = id;
+        document.getElementById('delete-modal').classList.remove('hidden');
+    }
 
-        investimentos.forEach(inv => {
-            totalInvestido += inv.valor || 0;
-            totalHaver += inv.haver || 0;
+    function hideDeleteConfirmation() {
+        investmentToDeleteId = null;
+        document.getElementById('delete-modal').classList.add('hidden');
+    }
+    // --- Fim Funções do Modal de Exclusão ---
 
-            const nome = inv.nome;
-            dataForChart[nome] = (dataForChart[nome] || 0) + (inv.valor || 0);
-        });
 
-        // Atualizar Displays de Total
-        const totalInvestidoDisplay = document.getElementById('totalInvestidoDisplay');
-        const totalHaverDisplay = document.getElementById('totalHaverDisplay');
-        if (totalInvestidoDisplay) totalInvestidoDisplay.textContent = formatarMoeda(totalInvestido);
-        if (totalHaverDisplay) totalHaverDisplay.textContent = formatarMoeda(totalHaver);
+    // Função para deletar um investimento (sem filtro por user_id)
+    async function deletarInvestimento(id) {
+        if (!supabaseConfigured || !currentUserId) {
+            showFeedback('ERRO: Usuário não logado ou Supabase não configurado. Impossível deletar.', 'error');
+            return;
+        }
 
-        // Atualizar Gráfico (Chart.js)
-        const labels = Object.keys(dataForChart);
-        const dataValues = Object.values(dataForChart);
-        const backgroundColors = labels.map((_, index) => COLORS[index % COLORS.length]);
+        // CRÍTICO: Delete SEM filtro de user_id. Qualquer usuário logado pode deletar qualquer registro.
+        const { error } = await supabase
+            .from('INVESTIMENTO')
+            .delete()
+            .eq('id', id);
 
-        const chartCanvas = document.getElementById('investimentoChart');
-        if (!chartCanvas) return; 
-
-        if (investmentChart) {
-            investmentChart.data.labels = labels;
-            investmentChart.data.datasets[0].data = dataValues;
-            investmentChart.data.datasets[0].backgroundColor = backgroundColors;
-            investmentChart.update();
+        if (error) {
+            console.error('Erro ao deletar investimento:', error);
+            showFeedback('Erro ao deletar investimento: ' + error.message + '. Verifique as políticas RLS para DELETE.', 'error');
         } else {
-            const ctx = chartCanvas.getContext('2d');
-            investmentChart = new Chart(ctx, {
-                type: 'pie',
+            showFeedback('Investimento deletado com sucesso!');
+            await carregarDados(); // Recarrega a lista
+        }
+    }
+
+
+    // Função para inicializar/atualizar o gráfico Chart.js
+    function atualizarGrafico(labels, data) {
+        const ctx = document.getElementById('investimentoChart').getContext('2d');
+        const colors = [
+            '#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+            '#6366f1', '#2563eb', '#059669', '#d97706', '#dc2626'
+        ];
+
+        const datasets = [{
+            data: data,
+            backgroundColor: colors.slice(0, labels.length),
+            hoverOffset: 12,
+            borderWidth: 2,
+            borderColor: '#ffffff'
+        }];
+
+        if (investimentoChart) {
+            investimentoChart.data.labels = labels;
+            investimentoChart.data.datasets = datasets;
+            investimentoChart.update();
+        } else {
+            investimentoChart = new Chart(ctx, {
+                type: 'doughnut',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        data: dataValues,
-                        backgroundColor: backgroundColors,
-                        hoverOffset: 4
-                    }]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: 10 },
                     plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                boxWidth: 10,
-                                font: {
-                                    family: 'Inter',
-                                    size: 14
-                                }
-                            }
-                        },
-                        title: {
-                            display: false
-                        }
+                        legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 14 }, usePointStyle: true, padding: 20 } },
+                        title: { display: false }
                     }
                 }
             });
         }
     }
 
+    // --- Listeners e Submissão do Formulário de Investimento ---
+    document.getElementById('investimentoForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    // --- Inicialização e Listeners ---
+        if (!currentUserId) {
+            showFeedback('Você precisa estar logado para cadastrar um investimento.', 'error');
+            return;
+        }
 
-    window.onload = function () {
-        // Inicializa Supabase e Autenticação
-        initializeSupabase(); 
+        // Desativa o botão e mostra o spinner
+        submitButton.disabled = true;
+        submitText.classList.add('hidden');
+        loadingSpinner.classList.remove('hidden');
 
-        // 1. Listener para adicionar novo investimento
-        const invForm = document.getElementById('investimentoForm');
-        if (invForm) invForm.addEventListener('submit', adicionarInvestimento);
+        // Limpa mensagens de erro
+        document.getElementById('valor_error').textContent = '';
+        document.getElementById('resgate_error').textContent = '';
+        document.getElementById('taxa_juros_error').textContent = '';
+        let hasErrors = false;
 
-        // 2. Listeners para cálculos automáticos no formulário
+        // Captura valores
+        const nomeTipo = document.getElementById('nomeId').value;
+        const taxaJurosPercentual = parseFloat(document.getElementById('taxaJuros').value);
+        const valorFormatado = document.getElementById('valor').value;
+        const valor = getValorNumerico(valorFormatado);
+        const dataInicio = document.getElementById('entrada').value;
+        const dataResgate = document.getElementById('retorno').value;
+        const haver = document.getElementById('haver').value ? parseFloat(document.getElementById('haver').value) : null;
+
+        // Validações
+        if (!nomeTipo) { showFeedback('Por favor, selecione um Tipo de Investimento.', 'error'); hasErrors = true; }
+        if (taxaJurosPercentual <= 0 || isNaN(taxaJurosPercentual)) { document.getElementById('taxa_juros_error').textContent = 'A taxa de juros deve ser maior que zero.'; hasErrors = true; }
+        if (valor <= 0) { document.getElementById('valor_error').textContent = 'O valor deve ser positivo (R$ 0,01 ou mais).'; hasErrors = true; }
+        if (dataInicio && dataResgate && new Date(dataInicio) >= new Date(dataResgate)) { document.getElementById('resgate_error').textContent = 'A data de resgate deve ser posterior à data de início.'; hasErrors = true; }
+
+        if (hasErrors) {
+            submitButton.disabled = false;
+            submitText.classList.remove('hidden');
+            loadingSpinner.classList.add('hidden');
+            return;
+        }
+
+        // CRÍTICO: Insere o novo registro SEM user_id (dados compartilhados)
+        const { error } = await supabase
+            .from('INVESTIMENTO')
+            .insert([{
+                nome: nomeTipo,
+                valor: valor,
+                entrada: dataInicio,
+                retorno: dataResgate,
+                haver: haver,
+            }]);
+
+        // Reativa o botão e esconde o spinner
+        submitButton.disabled = false;
+        submitText.classList.remove('hidden');
+        loadingSpinner.classList.add('hidden');
+
+        if (error) {
+            console.error('Erro ao salvar investimento:', error);
+            showFeedback(`Erro ao salvar: ${error.message}. Verifique as políticas RLS para INSERT.`, 'error');
+        } else {
+            showFeedback('Investimento salvo com sucesso!');
+            document.getElementById('investimentoForm').reset();
+            document.getElementById('dias-totais-display').textContent = '0 dias';
+            document.getElementById('taxaJuros').value = '10.00';
+            // Recalcula o haver para o formulário resetado (deve ser 0)
+            calcularEExibirHaverEDias();
+            await carregarDados();
+        }
+    });
+
+    // --- Inicialização ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 1. Inicializa o listener de autenticação
+        setupAuthListener();
+
+        // 2. Define a data de início como hoje por padrão
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('entrada').value = today;
+
+        // 3. Listeners do formulário principal
         const valorEl = document.getElementById('valor');
-        if (valorEl) valorEl.addEventListener('input', formatarInputMoeda);
-        
-        const entradaEl = document.getElementById('entrada');
-        if (entradaEl) entradaEl.addEventListener('input', calcularEExibirHaverEDias);
+        valorEl.addEventListener('input', formatarInputMoeda);
+        document.getElementById('entrada').addEventListener('input', calcularEExibirHaverEDias);
+        document.getElementById('retorno').addEventListener('input', calcularEExibirHaverEDias);
+        document.getElementById('retorno').addEventListener('change', calcularEExibirHaverEDias);
+        document.getElementById('taxaJuros').addEventListener('input', calcularEExibirHaverEDias);
 
-        const retornoEl = document.getElementById('retorno');
-        if (retornoEl) {
-            retornoEl.addEventListener('input', calcularEExibirHaverEDias);
-            retornoEl.addEventListener('change', calcularEExibirHaverEDias);
-        }
+        // 4. Listeners para o Modal de Exclusão
+        document.getElementById('cancel-delete').addEventListener('click', hideDeleteConfirmation);
+        document.getElementById('confirm-delete').addEventListener('click', () => {
+            if (investmentToDeleteId) {
+                deletarInvestimento(investmentToDeleteId);
+            }
+            hideDeleteConfirmation();
+        });
 
-        const taxaJurosEl = document.getElementById('taxaJuros');
-        if (taxaJurosEl) taxaJurosEl.addEventListener('input', calcularEExibirHaverEDias);
+        // 5. Listeners de Autenticação
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            handleAuth(email, password);
+        });
 
-
-        // 3. Listeners para o Modal de Exclusão
-        const cancelDeleteBtn = document.getElementById('cancel-delete');
-        if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
-
-        const confirmDeleteBtn = document.getElementById('confirm-delete');
-        if (confirmDeleteBtn) {
-            confirmDeleteBtn.addEventListener('click', () => {
-                if (investmentToDeleteId) {
-                    // Confirma a exclusão e passa o ID
-                    deletarInvestimento(investmentToDeleteId);
-                }
-                hideDeleteConfirmation();
-            });
-        }
-
-
-        // 4. Listeners de Autenticação
-        const authForm = document.getElementById('auth-form');
-        if (authForm) {
-            authForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const email = document.getElementById('auth-email')?.value;
-                const password = document.getElementById('auth-password')?.value;
-                if (email && password) handleAuth(email, password);
-            });
-        }
-
-        const authSwitchBtn = document.getElementById('auth-switch-mode');
-        if (authSwitchBtn) authSwitchBtn.addEventListener('click', toggleAuthMode);
-
-        const logoutBtn = document.getElementById('logout-button');
-        if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-    };
+        document.getElementById('auth-switch-mode').addEventListener('click', toggleAuthMode);
+        document.getElementById('logout-button').addEventListener('click', handleLogout);
+    });
   </script>
 </body>
 </html>
