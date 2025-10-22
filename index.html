@@ -1,595 +1,857 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerenciador de Gabinete</title>
+  <title>Gerenciador de Investimentos</title>
+  <!-- Tailwind CSS para estilização moderna e responsiva -->
+  <!-- CORREÇÃO 1: Removido espaço extra -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    // Configuração do Tailwind para o modo escuro
-    tailwind.config = {
-        darkMode: 'class',
-        theme: {
-            extend: {
-                fontFamily: {
-                    sans: ['Inter', 'sans-serif'],
-                },
-            }
-        }
-    }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome para ícones (lixeira) -->
+  <!-- CORREÇÃO 2: Removido espaço extra -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJdE52J1pQ0+wAfrrK5zQ78T7y6mG+W4jWd0P/D0sF0O00g/O0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Configuração da fonte Inter e estilos aprimorados -->
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Barra de rolagem customizada para melhor estética */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    .dark ::-webkit-scrollbar-track {
-        background: #1f2937;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 10px;
-    }
-    .dark ::-webkit-scrollbar-thumb {
-        background: #4b5563;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-    .dark ::-webkit-scrollbar-thumb:hover {
-        background: #6b7280;
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --success: #10b981;
+      --error: #ef4444;
+      --background-light: #f9fafb;
+      --card-bg: #ffffff;
     }
 
+    /* Estilo global aprimorado */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background-light); /* Fundo mais suave */
+      color: #1f2937;
+      min-height: 10vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Estilos personalizados para botões usando @apply do Tailwind */
+    .btn {
+      @apply font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md;
+    }
+
+    .btn:disabled {
+      @apply opacity-50 cursor-not-allowed;
+    }
+
+    .btn-primary {
+      @apply bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)] focus:ring-offset-2;
+    }
+
+    .btn-secondary {
+      @apply bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2;
+    }
+
+    .btn-delete {
+      /* Ajuste para alinhar o ícone e o texto */
+      @apply bg-[var(--error)] text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-[var(--error)] focus:ring-offset-2;
+    }
+
+    .btn-success {
+      @apply bg-[var(--success)] text-white hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-[var(--success)] focus:ring-offset-2;
+    }
+
+    /* Ajuste para o formulário */
+    .input-field {
+      @apply p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] w-full;
+    }
+
+    /* Estilo para a mensagem de feedback/toast */
+    #feedback-message {
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        z-index: 1000;
+        transform: translateY(100%);
+    }
+
+    #feedback-message.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
   </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<body class="flex flex-col min-h-screen">
 
-<!-- ==== TELA DE LOGIN ==== -->
-<div id="loginScreen"
-     style="display: flex"
-     class="fixed inset-0 bg-gray-900/90 dark:bg-gray-900/95 backdrop-blur-sm z-50 items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md space-y-6">
-        <!-- O Título e o Parágrafo de Orientação estão com 'select-none' -->
-        <h2 class="text-3xl font-bold text-center text-indigo-600 dark:text-indigo-400 select-none">Gerenciador de Gabinete</h2>
-        <p class="text-center text-gray-600 dark:text-gray-400 select-none">Faça login para continuar</p>
+  <!-- Mensagem de Feedback (Toast) -->
+  <div id="feedback-message" class="fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 translate-y-full max-w-sm">
+    <p id="feedback-text" class="font-medium"></p>
+  </div>
 
-        <form id="loginForm" class="space-y-4">
+  <main class="flex-grow container mx-auto p-4 md:p-8">
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-[var(--primary)]">Gestão Financeira e de Investimentos</h1>
+        <p class="text-gray-500 mt-2">Sua carteira em tempo real e em ambiente colaborativo.</p>
+    </header>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Confirmar Exclusão</h2>
+            <p class="mb-6 text-gray-600">Tem certeza que deseja excluir este investimento? Esta ação é irreversível e o investimento será removido de **todos** os usuários, pois a carteira é compartilhada.</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-delete" class="btn btn-secondary">Cancelar</button>
+                <button id="confirm-delete" class="btn btn-delete">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container de Autenticação -->
+    <div id="auth-container" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-xl">
+        <h2 id="auth-title" class="text-2xl font-bold mb-6 text-center text-gray-800">Entrar</h2>
+        <form id="auth-form" class="space-y-4">
             <div>
-                <label for="email" class="block text-sm font-medium mb-1">E-mail</label>
-                <!-- Aplicamos 'select-none' aqui para desabilitar a seleção do valor sugerido -->
-                <input type="email" id="email" required
-                       class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white select-none"
-                       placeholder="nome@ba.br">
+                <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" id="auth-email" class="input-field" placeholder="seu.email@exemplo.com" required>
             </div>
             <div>
-                <label for="password" class="block text-sm font-medium mb-1">Senha</label>
-                 <!-- Aplicamos 'select-none' aqui para desabilitar a seleção do valor sugerido -->
-                <input type="password" id="password" required
-                       class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white select-none"
-                       placeholder="*************">
+                <label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                <input type="password" id="auth-password" class="input-field" placeholder="••••••••" required>
             </div>
-            <button type="submit"
-                    class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                Entrar
-            </button>
+            <button type="submit" id="login-button" class="btn btn-primary w-full">Entrar</button>
         </form>
-
-        <div id="loginMessage" class="text-center text-sm text-red-500 hidden"></div>
-
-        <button id="toggleDarkModeLogin"
-                class="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"></path></svg>
+        <button id="auth-switch-mode" class="mt-4 text-sm w-full text-center text-[var(--primary)] hover:text-[var(--primary-dark)] transition-colors">
+            Não tem conta? Cadastre-se
         </button>
     </div>
-</div>
 
-<!-- ==== LAYOUT PRINCIPAL (Após Login) ==== -->
-<div id="mainApp" style="display: none" class="flex h-screen overflow-hidden">
-    <!-- Sidebar -->
-  <div id="sidebar"
-     class="hidden lg:flex flex-col w-64 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700">
-
-
-
-        <div class="flex items-center justify-center h-20 border-b border-gray-200 dark:border-gray-700 p-4">
-            <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Gabinete</span>
-        </div>
-        <nav class="flex-1 overflow-y-auto p-4 space-y-2">
-            <a href="#" class="tab-link flex items-center p-3 text-base font-medium rounded-lg transition duration-150 ease-in-out bg-indigo-600 text-white shadow-md active-tab" data-tab="dashboard">
-                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 00-1-1H9a1 1 0 00-1 1v4a1 1 0 001 1z"></path></svg>
-                Dashboard
-            </a>
-            <a href="#" class="tab-link flex items-center p-3 text-base font-medium rounded-lg transition duration-150 ease-in-out hover:bg-gray-200 dark:hover:bg-gray-700" data-tab="demandas">
-                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                Demandas
-            </a>
-            <a href="#" class="tab-link flex items-center p-3 text-base font-medium rounded-lg transition duration-150 ease-in-out hover:bg-gray-200 dark:hover:bg-gray-700" data-tab="contatos">
-                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2a3 3 0 015.356-1.857M7 20h4.444M12 12h.01M17 12h.01M10 5.257V4a1 1 0 011-1h2a1 1 0 011 1v1.257m-4 12V16a1 1 0 011-1h6a1 1 0 011 1v1.257m-8 3H9a1 1 0 00-1 1v1h8v-1a1 1 0 00-1-1h-2"></path></svg>
-                Contatos
-            </a>
-        </nav>
-        <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-            <button id="logoutButton" class="flex items-center w-full p-3 text-base font-medium rounded-lg transition duration-150 ease-in-out text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700">
-                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3v-3m14-12v1a3 3 0 00-3 3H6a3 3 0 00-3 3v3"></path></svg>
-                Sair
-            </button>
-        </div>
-    </div>
-
-    <!-- Conteúdo Principal -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Header -->
-        <header class="h-20 flex items-center justify-between px-6 bg-white dark:bg-gray-800 shadow-md border-b border-gray-200 dark:border-gray-700">
-            <h1 id="pageTitle" class="text-3xl font-semibold text-indigo-600 dark:text-indigo-400">Dashboard</h1>
-            <div class="flex items-center space-x-4">
-                <span id="userName" class="text-lg font-medium hidden sm:block">Usuário</span>
-                <button id="toggleDarkMode"
-                        class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                </button>
+    <!-- Container da Aplicação (Visível após o login) -->
+    <div id="app-container" class="hidden">
+        <div class="flex justify-between items-center mb-6 p-4 bg-white rounded-xl shadow-lg">
+            <div class="flex flex-col sm:flex-row sm:items-center">
+                <p class="text-sm text-gray-500 mr-4">Logado como:</p>
+                <p id="user-email-display" class="font-medium text-gray-800 break-all"></p>
+                <!-- O ID do usuário logado é crucial para debug em apps colaborativos -->
+                <p id="user-id-display" class="text-xs text-gray-400 mt-1 sm:mt-0 sm:ml-4"></p>
             </div>
-        </header>
+            <button id="logout-button" class="btn btn-secondary ml-4">Sair</button>
+        </div>
 
-        <!-- Área de Conteúdo das Tabs -->
-<main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 md:p-8 pb-20 lg:pb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Coluna 1: Cadastro de Novo Investimento -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-xl h-fit">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Cadastrar Novo Investimento</h2>
+                <form id="investimentoForm" class="space-y-4">
 
-            <!-- Tab: Dashboard -->
-            <div id="dashboard" class="tab-content active space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                    <!-- Card 1: Total de Contatos (contagem da tabela 'Contatos') -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300">
-                        <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total de Contatos</h3>
-                        <p id="totalContatos" class="text-4xl font-bold mt-1 text-yellow-600 dark:text-yellow-400">0</p>
+                    <div>
+                        <label for="nomeTipo" class="block text-sm font-medium text-gray-700 mb-1">Nome/Tipo do Investimento</label>
+                        <select id="nomeTipo" class="input-field" required>
+                            <!-- Opções carregadas via JS -->
+                            <option value="" disabled selected>Carregando Tipos...</option>
+                        </select>
                     </div>
 
-                    <!-- Card 2: Total de Demandas Registradas (contagem da tabela 'Demandas Ativas') -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300">
-                        <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total Demandas Registradas</h3>
-                        <p id="totalDemandasRegistradas" class="text-4xl font-bold mt-1 text-indigo-600 dark:text-indigo-400">0</p>
+                    <div>
+                        <label for="taxaJuros" class="block text-sm font-medium text-gray-700 mb-1">Taxa de Juros Mensal (%)</label>
+                        <input type="number" id="taxaJuros" class="input-field" placeholder="Ex: 0.8" step="0.01" min="0" required>
                     </div>
 
-                    <!-- Card 3: Demandas em Aberto (Status: Em Aberto) -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300">
-                        <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Demandas em Aberto</h3>
-                        <p id="demandasEmAberto" class="text-4xl font-bold mt-1 text-red-600 dark:text-red-400">0</p>
+                    <div>
+                        <label for="valor" class="block text-sm font-medium text-gray-700 mb-1">Valor Investido (R$)</label>
+                        <input type="text" id="valor" class="input-field" placeholder="R$ 1.000,00" required>
                     </div>
 
-                    <!-- Card 4: Demandas em Andamento (Status: Em Andamento) -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300">
-                        <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Demandas em Andamento</h3>
-                        <p id="demandasEmAndamento" class="text-4xl font-bold mt-1 text-orange-500 dark:text-orange-400">0</p>
+                    <div>
+                        <label for="entrada" class="block text-sm font-medium text-gray-700 mb-1">Data de Início</label>
+                        <input type="date" id="entrada" class="input-field" required>
                     </div>
 
-                    <!-- Card 5: Demandas Concluídas (Status: Concluída) -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300">
-                        <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Demandas Concluídas</h3>
-                        <p id="demandasConcluidas" class="text-4xl font-bold mt-1 text-green-600 dark:text-green-400">0</p>
+                    <div>
+                        <label for="retorno" class="block text-sm font-medium text-gray-700 mb-1">Data de Resgate Programado</label>
+                        <input type="date" id="retorno" class="input-field" required>
                     </div>
-                </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Gráfico: Demandas por Status -->
-                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h3 class="text-xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">Distribuição de Demandas</h3>
-                        <div class="h-80">
-                            <canvas id="demandasStatusChart"></canvas>
+                    <!-- Campos de Cálculo Automático -->
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Prazo Total em Dias:</p>
+                            <p id="diasTotaisDisplay" class="font-bold text-lg text-[var(--primary)]">0 Dias</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Valor de Resgate Estimado (Haver):</p>
+                            <p id="haverEstimadoDisplay" class="font-bold text-lg text-[var(--success)]">R$ 0,00</p>
                         </div>
                     </div>
-                    <!-- Top Demandas -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h3 class="text-xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">Top 5 Demandas Recentes</h3>
-                        <ul id="topDemandasList" class="space-y-3">
-                            <li class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm font-medium">Carregando...</li>
-                        </ul>
+                    
+                    <button type="submit" class="btn btn-primary w-full">Adicionar Investimento</button>
+                </form>
+            </div>
+
+            <!-- Coluna 2 e 3: Gráfico e Lista de Investimentos -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Resumo e Gráfico -->
+                <div class="bg-white p-6 rounded-xl shadow-xl">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Resumo da Carteira (Global)</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-[var(--primary)] text-white p-4 rounded-lg shadow-inner">
+                            <p class="text-sm opacity-90">Total Investido:</p>
+                            <p id="totalInvestidoDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
+                        </div>
+                        <div class="bg-[var(--success)] text-white p-4 rounded-lg shadow-inner">
+                            <p class="text-sm opacity-90">Total a Resgatar (Haver Estimado):</p>
+                            <p id="totalHaverDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Distribuição da Carteira (Gráfico)</h3>
+                    <div class="relative max-w-md mx-auto h-72">
+                        <canvas id="investimentoChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Lista de Investimentos -->
+                <div class="bg-white p-6 rounded-xl shadow-xl">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Carteira Compartilhada</h2>
+                    <div id="investimento-list" class="space-y-4">
+                        <p class="text-gray-500 text-center py-4" id="loading-message">Carregando investimentos...</p>
+                        <!-- Investimentos serão listados aqui -->
                     </div>
                 </div>
             </div>
-
-
-            <!-- Tab: Demandas -->
-            <div id="demandas" class="tab-content space-y-6">
-                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Gestão de Demandas</h2>
-                    <button id="addDemandButton"
-                            class="py-2 px-4 rounded-lg shadow-md text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150 ease-in-out flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        Nova Demanda
-                    </button>
-                </div>
-
-                <!-- Formulário de Demanda (Modal) -->
-                <div id="demandModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg p-6 space-y-6 transform transition-all scale-100 opacity-100">
-                        <h3 id="demandModalTitle" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Adicionar Nova Demanda</h3>
-                        <form id="demandForm" class="space-y-4">
-                            <input type="hidden" id="demandIdToUpdateInput" value="">
-
-                            <div>
-                                <label for="demandTitleSelect" class="block text-sm font-medium mb-1">Demanda</label>
-                                <select id="demandTitleSelect" name="demandTitle" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                                <option value="">Selecione uma demanda</option>
-                                <!-- As opções serão preenchidas via JS -->
-                        </select>
-                            </div>
-
-                            <div>
-                                <label for="demandContactNameSelect" class="block text-sm font-medium mb-1">Nome</label>
-                                 <select id="demandContactNameSelect" name="demandContact" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                                <option value="">Selecione uma demanda</option>
-                                <!-- As opções serão preenchidas via JS -->
-                        </select>
-                            </div>
-
-                            <div>
-                                <label for="demandDescription" class="block text-sm font-medium mb-1">Descrição</label>
-                                <textarea id="demandDescription" rows="3" required placeholder="Detalhes da demanda..."
-                                          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white"></textarea>
-                            </div>
-
-                            <div>
-                                <label for="demandStatus" class="block text-sm font-medium mb-1">Status</label>
-                                <select id="demandStatus" required
-                                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                                    <option value="Em Aberto">Em Aberto</option>
-                                    <option value="Em Andamento">Em Andamento</option>
-                                    <option value="Concluída">Concluída</option>
-                                    <option value="Cancelada">Cancelada</option>
-                                </select>
-                            </div>
-
-                            <div class="flex justify-end space-x-3">
-                                <button type="button" id="closeDemandModalButton"
-                                        class="py-2 px-4 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                                    Cancelar
-                                </button>
-                                <button type="submit"
-                                        class="py-2 px-4 rounded-lg shadow-md text-white bg-indigo-600 hover:bg-indigo-700 transition">
-                                    Salvar Demanda
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Tabela de Demandas -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class="overflow-x-auto">
-                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Demanda</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nome</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Descrição</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="demandasList" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <!-- Linhas de demanda serão inseridas aqui por JS -->
-                                <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Carregando demandas...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab: Contatos -->
-            <div id="contatos" class="tab-content space-y-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Gestão de Contatos</h2>
-                    <button id="addContactButton"
-                            class="py-2 px-4 rounded-lg shadow-md text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150 ease-in-out flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        Novo Contato
-                    </button>
-                </div>
-
-                <!-- Formulário de Contato (Modal) -->
-                <div id="contactModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg p-6 space-y-6">
-                        <h3 id="contactModalTitle" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Adicionar Novo Contato</h3>
-                        <form id="contactForm" class="space-y-4">
-                            <input type="hidden" id="contactIdToUpdateInput" value="">
-
-                            <div>
-                                <label for="contactName" class="block text-sm font-medium mb-1">Nome</label>
-                                <input type="text" id="contactName" required placeholder="Nome completo do contato"
-                                       class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                            </div>
-
-                            <div>
-                                <label for="contactPhone" class="block text-sm font-medium mb-1">Telefone</label>
-                                <input type="text" id="contactPhone" name="contactPhone" maxlength="15" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white">              </div>
-                             <div>
-                                <label for="contactRegion" class="block text-sm font-medium mb-1">Região</label>
-                                <!-- CAMPO ALTERADO PARA SELECT (DROPDOWN) -->
-                                <select id="contactRegion"
-                                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                                    <option value="">Carregando opções...</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="contactAddress" class="block text-sm font-medium mb-1">Endereço</label>
-                                <input type="text" id="contactAddress" placeholder="Rua, Número, CEP"
-                                       class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                            </div>
-
-                            <div class="flex justify-end space-x-3">
-                                <button type="button" id="closeContactModalButton"
-                                        class="py-2 px-4 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                                    Cancelar
-                                </button>
-                                <button type="submit"
-                                        class="py-2 px-4 rounded-lg shadow-md text-white bg-indigo-600 hover:bg-indigo-700 transition">
-                                    Salvar Contato
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Tabela de Contatos -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nome</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Telefone</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Região</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Endereço</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="contatosList" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <!-- Linhas de contato serão inseridas aqui por JS -->
-                                <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Carregando contatos...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab: Configurações (Apenas Dark Mode) -->
-            <div id="configuracoes" class="tab-content space-y-6">
-                <h2 class="text-2xl font-bold mb-6">Configurações</h2>
-                 <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">Preferências de Visualização</h3>
-                    <div class="flex items-center justify-between">
-                        <label for="darkModeToggleSetting" class="text-lg">Modo Escuro</label>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" value="" id="darkModeToggleSetting" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Modal de Mensagens Genéricas -->
-            <div id="genericModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-                    <h3 id="modalTitle" class="text-xl font-bold text-indigo-600 dark:text-indigo-400"></h3>
-                    <p id="modalMessage" class="text-gray-700 dark:text-gray-300"></p>
-                    <div class="flex justify-end">
-                        <button id="closeGenericModalButton"
-                                class="py-2 px-4 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition">
-                            Fechar
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-        </main>
+        </div>
     </div>
-</div>
 
-<script>
-    window.onload = function () {
-        // =========================================================================================
-        // CONFIGURAÇÃO CRÍTICA DO SUPABASE - DEVE SER ATUALIZADA!
-        // =========================================================================================
-        // POR FAVOR, SUBSTITUA ESTES VALORES pelos seus reais (URL do projeto e chave Anon)
-        const SUPABASE_URL = 'https://czixoasuvhpxrldypzpz.supabase.co'; // !!! SUBSTITUIR PELA SUA URL REAL AQUI !!!
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6aXhvYXN1dmhweHJsZHlwenB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2MjkzOTUsImV4cCI6MjA3NDIwNTM5NX0.msRmh-jYGjIOHDChgf8VWjiG7bzyIdh0M60YThv9Dtw'; // !!! SUBSTITUIR PELA SUA CHAVE ANON REAL AQUI !!!
+  </main>
 
-        // Inicializa o cliente Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <footer class="bg-white mt-8 p-4 text-center text-sm text-gray-500 border-t">
+    Gerenciador de Investimentos &copy; 2025 | Powered by Supabase & Chart.js
+  </footer>
 
-        // Variáveis de Estado
-        let isAuthenticated = false;
-        let demandasCache = [];
-        let contatosCache = [];
-        let statusChart;
+  <!-- Bibliotecas JS -->
+  <!-- CORREÇÃO 3: Removido espaço extra -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- Supabase CDN (Substituindo Firebase) -->
+  <!-- CORREÇÃO 4: Removido espaço extra -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        // =========================================================================================
-        // FUNÇÕES DE UTILIDADE E INTERAÇÃO
-        // =========================================================================================
-        // NOVO: Função centralizada para lidar com ações (Edição e Exclusão)
-async function handleDemandAction(action, id) {
-    if (action === 'edit') {
-        // CORREÇÃO: Busca usando o ID real (d.ID), que é o valor em data-id do botão.
-        const demanda = demandasCache.find(d => String(d.ID) === id);
+  <script type="module">
+    // Variáveis globais de ambiente (Assumindo que são fornecidas pelo ambiente)
+    // Usando variáveis globais simuladas para URL e chave anônima do Supabase
+    // CORREÇÃO 5: Removido espaço extra
+    const SUPABASE_URL = typeof __supabase_url !== 'undefined' ? __supabase_url : 'https://odaalhsghdmpyhgnblml.supabase.co';
+    // CORREÇÃO 6: Removido espaço extra
+    const SUPABASE_ANON_KEY = typeof __supabase_anon_key !== 'undefined' ? __supabase_anon_key : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYWFsaHNnaGRtcHloZ25ibG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzMyODUsImV4cCI6MjA3NjU0OTI4NX0.J3bgvqGOh2KsNPhuQbnAcGsmNnsqxktIygOpJqr1cHM';
 
-        if (demanda) {
-            // Chamadas essenciais para garantir que os SELECTs estejam populados antes de abrir
-            await loadDemandasOptions();
-            populateContactSelect();
+    // Constantes
+    const DIAS_NO_MES = 30.4375; // Média de dias por mês para cálculo de juros
+    const PRIMARY_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+    const SUCCESS_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--success').trim();
+    const ERROR_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--error').trim();
+    const COLORS = [PRIMARY_COLOR, SUCCESS_COLOR, '#3b82f6', '#f59e0b', '#14b8a6', '#8b5cf6', '#ec4899', '#f97316'];
 
-            // Configurações e Abertura do Modal
-            document.getElementById('demandModalTitle').textContent = `Editar Demanda #${id}`;
-            document.getElementById('demandIdToUpdateInput').value = id;
+    // Instâncias Supabase
+    // Renomeado para supabaseClient para evitar conflito com o objeto global Supabase
+    let supabaseClient = null; 
+    let currentUserId = null; 
+    let investmentChart = null;
+    let investmentToDeleteId = null; // ID do investimento para exclusão
+    // --- ADICIONADO: Variável para armazenar o canal de Realtime ---
+    let realtimeChannel = null;
+    // --- FIM DAS ALTERAÇÕES ---
 
-            // Preenchimento dos campos
-            document.getElementById('demandTitleSelect').value = demanda.demanda;
-            document.getElementById('demandContactNameSelect').value = demanda.contato;
-            document.getElementById('demandDescription').value = demanda.descricao;
-            document.getElementById('demandStatus').value = demanda.status;
+    // Nomes das tabelas
+    const TABLE_INVESTIMENTOS = 'INVESTIMENTO';
+    const TABLE_NOMES = 'NOMES';
 
-            document.getElementById('demandModal').classList.remove('hidden');
-        } else {
-            showModal("Erro", "Demanda não encontrada para edição.");
+
+    // --- UTILS ---
+
+    // Função para exibir mensagem de feedback (Toast)
+    function showFeedback(message, type = 'success') {
+        const feedbackEl = document.getElementById('feedback-message');
+        const textEl = document.getElementById('feedback-text');
+
+        if (!feedbackEl || !textEl) {
+            console.error("Elementos de feedback (Toast) não encontrados.");
+            return; 
         }
-    } else if (action === 'delete') {
-        // Nota: Não usar confirm() em ambiente Canvas
-        showModal("Confirmação Necessária", "A exclusão de dados não pode ser confirmada neste ambiente. Assumindo 'Sim' para demonstração.");
 
-        // Excluindo da tabela 'Demandas Ativas'
-        const { error } = await supabase
-            .from('Demandas Ativas')
-            .delete()
-            .eq('ID', id);
+        const classes = {
+            'success': 'bg-[var(--success)] text-white',
+            'error': 'bg-[var(--error)] text-white',
+            'info': 'bg-[var(--primary)] text-white'
+        };
 
-        if (error) {
-            console.error("Erro ao excluir demanda:", error);
-            showModal("Erro", `Erro ao excluir demanda: ${error.message}`);
-        } else {
-            carregarDemandas();
-            showModal("Sucesso", "Demanda excluída com sucesso!");
-        }
-    } else {
-        console.error(`Ação desconhecida: ${action}`);
+        // Resetar classes e aplicar novas
+        feedbackEl.className = 'fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 max-w-sm';
+        
+        // CORREÇÃO: Usar split(' ') e spread para adicionar cada classe separadamente
+        const classListToAdd = (classes[type] || classes['info']).split(' ');
+        feedbackEl.classList.add(...classListToAdd); // Aplica as classes de cor e texto
+
+        textEl.textContent = message;
+
+        // Mostrar
+        setTimeout(() => {
+            feedbackEl.classList.add('show', 'opacity-100');
+        }, 10);
+
+        // Esconder após 4 segundos
+        setTimeout(() => {
+            feedbackEl.classList.remove('show', 'opacity-100');
+        }, 4000);
     }
-}
+    
+    // Função para formatar números como moeda brasileira
+    function formatarMoeda(valor) {
+        if (typeof valor !== 'number') return 'R$ 0,00';
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    
+    // Função para formatar o input de moeda em tempo real
+    function formatarInputMoeda(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+        
+        let floatValue = parseFloat(value) / 100;
+        
+        e.target.value = floatValue.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2
+        }).replace('R$', '').trim();
+    }
 
-        function showModal(title, message) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = message;
-            document.getElementById('genericModal').classList.remove('hidden');
+    // Função que calcula o haver (resgate estimado) usando juros compostos
+    function calcularHaver(valor, taxaMensal, diasTotais) {
+        if (diasTotais <= 0 || valor <= 0 || taxaMensal <= 0) return 0;
+
+        const meses = diasTotais / DIAS_NO_MES;
+        const taxaDecimal = taxaMensal / 100;
+        
+        // Fórmula de juros compostos: M = C * (1 + i)^t
+        const haver = valor * Math.pow((1 + taxaDecimal), meses);
+        return haver;
+    }
+
+    // Função que calcula e exibe o haver e o prazo total
+    function calcularEExibirHaverEDias() {
+        const valorInput = document.getElementById('valor')?.value;
+        const taxaInput = parseFloat(document.getElementById('taxaJuros')?.value);
+        const entradaInput = document.getElementById('entrada')?.value;
+        const retornoInput = document.getElementById('retorno')?.value;
+
+        const diasDisplay = document.getElementById('diasTotaisDisplay');
+        const haverDisplay = document.getElementById('haverEstimadoDisplay');
+
+        if (!valorInput || !taxaInput || !entradaInput || !retornoInput || !diasDisplay || !haverDisplay) {
+            if (diasDisplay) diasDisplay.textContent = '0 Dias';
+            if (haverDisplay) haverDisplay.textContent = 'R$ 0,00';
+            return;
         }
 
-        document.getElementById('closeGenericModalButton').addEventListener('click', () => {
-            document.getElementById('genericModal').classList.add('hidden');
+        // 1. Converter o valor do input (R$ X.XXX,XX) para número
+        const valorNumerico = parseFloat(valorInput.replace(/[R$.]/g, '').replace(',', '.'));
+        
+        // 2. Calcular Dias Totais
+        let diasTotais = 0;
+        const dataInicio = new Date(entradaInput);
+        const dataResgate = new Date(retornoInput);
+            
+        const diffTime = Math.abs(dataResgate.getTime() - dataInicio.getTime());
+        diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // 3. Calcular Haver
+        let haver = 0;
+        if (valorNumerico > 0 && taxaInput > 0 && diasTotais > 0) {
+            haver = calcularHaver(valorNumerico, taxaInput, diasTotais);
+        }
+
+        // 4. Exibir resultados
+        diasDisplay.textContent = `${diasTotais} Dias`;
+        haverDisplay.textContent = formatarMoeda(haver);
+    }
+
+    // --- SUPABASE / AUTH ---
+
+    // Inicialização do Supabase e Autenticação
+    async function initializeSupabase() {
+        try {
+            if (SUPABASE_URL.includes('your-supabase-url') || SUPABASE_ANON_KEY.includes('your-anon-key')) {
+                console.error("Supabase Configuração não definida. Por favor, forneça as chaves SUPABASE_URL e SUPABASE_ANON_KEY.");
+                showFeedback('Erro de configuração: Chaves do Supabase não definidas.', 'error');
+                return;
+            }
+            
+            // CORREÇÃO DO ERRO 1: Chama createClient no objeto global window.supabase e armazena na variável local supabaseClient
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.error("Supabase CDN não carregado corretamente. 'window.supabase.createClient' não é uma função.");
+                showFeedback('Erro fatal: Supabase CDN não carregado. Verifique a conexão.', 'error');
+                return;
+            }
+            
+            // Listener de estado de autenticação (Substitui onAuthStateChanged)
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                const authContainer = document.getElementById('auth-container');
+                const appContainer = document.getElementById('app-container');
+                const user = session?.user;
+
+                if (user) {
+                    currentUserId = user.id;
+                    const emailDisplay = document.getElementById('user-email-display');
+                    const idDisplay = document.getElementById('user-id-display');
+                    
+                    if (emailDisplay) emailDisplay.textContent = user.email || 'Anônimo';
+                    if (idDisplay) idDisplay.textContent = `ID: ${user.id}`;
+                    
+                    if (authContainer) authContainer.classList.add('hidden');
+                    if (appContainer) appContainer.classList.remove('hidden');
+                    loadNames(); // Carregar nomes após login
+                    // --- ADICIONADO: Iniciar o listener de dados realtime ---
+                    startDataListener();
+                    // --- FIM DAS ALTERAÇÕES ---
+                } else {
+                    currentUserId = null;
+                    // --- ADICIONADO: Desinscrever do canal de realtime ao sair ---
+                    if (realtimeChannel) {
+                        supabaseClient.removeChannel(realtimeChannel);
+                        realtimeChannel = null;
+                    }
+                    // --- FIM DAS ALTERAÇÕES ---
+                    if (authContainer) authContainer.classList.remove('hidden');
+                    if (appContainer) appContainer.classList.add('hidden');
+                }
+            });
+
+        } catch (error) {
+            console.error("Erro na inicialização do Supabase:", error);
+            showFeedback('Erro ao iniciar a aplicação. Verifique a configuração do Supabase.', 'error');
+        }
+    }
+
+    // Gerenciar Login/Cadastro
+    async function handleAuth(email, password) {
+        if (!supabaseClient) return;
+
+        const titleEl = document.getElementById('auth-title');
+        const submitButton = document.getElementById('login-button');
+        if (!titleEl || !submitButton) return;
+
+        const isLogin = titleEl.textContent === 'Entrar';
+        submitButton.disabled = true;
+        submitButton.textContent = isLogin ? 'Entrando...' : 'Cadastrando...';
+
+        try {
+            let result;
+            if (isLogin) {
+                // Login
+                result = await supabaseClient.auth.signInWithPassword({ email, password });
+            } else {
+                // Cadastro (Sign Up)
+                result = await supabaseClient.auth.signUp({ email, password });
+            }
+
+            if (result.error) throw result.error;
+            
+            // Sucesso
+            if (isLogin) {
+                showFeedback('Login realizado com sucesso!');
+            } else {
+                // Nota: O Supabase por padrão envia um email de confirmação.
+                // Aqui simplificamos a experiência de imediato.
+                showFeedback('Conta criada com sucesso! Verifique seu email para confirmação (se RLS estiver ativo).', 'success');
+            }
+            
+        } catch (error) {
+            console.error("Erro de autenticação Supabase:", error);
+            let errorMessage = "Ocorreu um erro de autenticação.";
+            // Mensagens de erro mais específicas do Supabase (postgres/auth)
+            if (error.message.includes('AuthApiError')) {
+                errorMessage = 'Credenciais inválidas ou conta não confirmada.';
+            } else if (error.message.includes('Password should be at least 6 characters')) {
+                errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
+            } else if (error.code === '23505') { // Código de erro comum de violação de restrição de unicidade (e-mail já existe)
+                errorMessage = 'Este email já está cadastrado. Tente fazer login.';
+            } else {
+                errorMessage = error.message;
+            }
+
+            showFeedback(errorMessage, 'error');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = isLogin ? 'Entrar' : 'Cadastrar';
+        }
+    }
+
+    // Mudar entre Login e Cadastro
+    function toggleAuthMode() {
+        const title = document.getElementById('auth-title');
+        const button = document.getElementById('login-button');
+        const link = document.getElementById('auth-switch-mode');
+        if (!title || !button || !link) return;
+
+        const isLogin = title.textContent === 'Entrar';
+
+        if (isLogin) {
+            title.textContent = 'Criar Conta';
+            button.textContent = 'Cadastrar';
+            link.textContent = 'Já tem conta? Entrar';
+        } else {
+            title.textContent = 'Entrar';
+            button.textContent = 'Entrar';
+            link.textContent = 'Não tem conta? Cadastre-se';
+        }
+    }
+
+    // Logout
+    async function handleLogout() {
+        if (!supabaseClient) return;
+
+        try {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) throw error;
+            showFeedback('Você saiu da conta.', 'info');
+            // O onAuthStateChange cuidará da transição de UI
+        } catch (error) {
+            console.error("Erro ao fazer logout:", error);
+            showFeedback('Erro ao fazer logout.', 'error');
+        }
+    }
+
+    // --- DATA / SUPABASE POSTGRES ---
+
+    // Carregar Nomes/Tipos de Investimento (Tabela de Referência)
+    async function loadNames() {
+        if (!supabaseClient) return;
+        const selectEl = document.getElementById('nomeTipo');
+        if (!selectEl) return;
+        selectEl.innerHTML = `<option value="" disabled selected>Carregando Tipos...</option>`; // Limpar e mostrar loading
+
+        try {
+            // Tentar buscar nomes
+            let { data: nomes, error } = await supabaseClient
+                .from(TABLE_NOMES)
+                .select('nome')
+                .order('nome', { ascending: true });
+
+            if (error) throw error;
+
+            if (!nomes || nomes.length === 0) {
+                // Se a tabela estiver vazia, inserir valores iniciais (Mocados)
+                const initialNames = [
+                    { nome: "Ações" },
+                    { nome: "Renda Fixa" },
+                    { nome: "FIIs" },
+                    { nome: "Criptomoedas" }
+                ];
+                await supabaseClient.from(TABLE_NOMES).insert(initialNames);
+                nomes = initialNames; // Usar a lista recém-criada
+            }
+            
+            // Renderizar opções
+            selectEl.innerHTML = '<option value="" disabled selected>Selecione um Tipo</option>';
+            nomes.forEach(item => {
+                selectEl.innerHTML += `<option value="${item.nome}">${item.nome}</option>`;
+            });
+
+            selectEl.removeAttribute('disabled');
+        } catch (error) {
+            console.error("Erro ao carregar nomes de investimento Supabase:", error);
+            selectEl.innerHTML = `<option value="" disabled selected>Erro ao carregar tipos</option>`;
+            showFeedback('Erro ao carregar a lista de tipos de investimento.', 'error');
+        }
+    }
+
+    // Adicionar novo investimento
+    async function adicionarInvestimento(e) {
+        e.preventDefault();
+
+        if (!currentUserId) {
+            showFeedback('Erro: Usuário não autenticado. Faça login para adicionar.', 'error');
+            return;
+        }
+
+        const form = e.target;
+        const nomeTipo = form.nomeTipo.value;
+        const taxaJuros = parseFloat(form.taxaJuros.value);
+        const valorInput = form.valor.value;
+        const dataInicio = form.entrada.value;
+        const dataResgate = form.retorno.value;
+
+        const valorNumerico = parseFloat(valorInput.replace(/[R$.]/g, '').replace(',', '.'));
+        
+        const dataInic = new Date(dataInicio);
+        const dataResg = new Date(dataResgate);
+        const diffTime = Math.abs(dataResg.getTime() - dataInic.getTime());
+        const diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const haver = calcularHaver(valorNumerico, taxaJuros, diasTotais);
+
+        if (haver === 0) {
+             showFeedback('Verifique os valores de Juros, Valor e Datas. Haver estimado não pode ser zero.', 'error');
+             return;
+        }
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Adicionando...';
+        
+        try {
+                        const { error } = await supabaseClient
+                .from(TABLE_INVESTIMENTOS)
+                .insert([{
+                    nome: nomeTipo,
+                    valor: valorNumerico,
+                    entrada: dataInicio,
+                    retorno: dataResgate,
+                    haver: haver,
+                }]);
+
+            if (error) throw error;
+
+            showFeedback('Investimento adicionado com sucesso!');
+            form.reset();
+            const diasDisplay = document.getElementById('diasTotaisDisplay');
+            const haverDisplay = document.getElementById('haverEstimadoDisplay');
+            if (diasDisplay) diasDisplay.textContent = '0 Dias';
+            if (haverDisplay) haverDisplay.textContent = 'R$ 0,00';
+
+            // A atualização agora é feita automaticamente pelo Realtime listener
+            // fetchAndRenderData(); // Esta linha NÃO é mais necessária aqui
+
+        } catch (error) {
+            console.error("Erro ao adicionar investimento Supabase:", error);
+            showFeedback('Erro ao adicionar investimento. Tente novamente.', 'error');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Adicionar Investimento';
+        }
+    }
+    
+    // Funções de Modal e Deleção (mantidas)
+
+    function showDeleteConfirmation(id) {
+        const modal = document.getElementById('delete-modal');
+        if (!modal) return;
+        investmentToDeleteId = id;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function hideDeleteConfirmation() {
+        const modal = document.getElementById('delete-modal');
+        if (!modal) return;
+        investmentToDeleteId = null;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    async function deletarInvestimento(id) {
+        if (!supabaseClient) return;
+
+        try {
+            const { error } = await supabaseClient
+                .from(TABLE_INVESTIMENTOS)
+                .delete()
+                .eq('id', id); // Filtra pelo ID
+
+            if (error) throw error;
+            showFeedback('Investimento excluído com sucesso!', 'info');
+            // A atualização agora é feita automaticamente pelo Realtime listener
+            // fetchAndRenderData(); // Esta linha NÃO é mais necessária aqui
+        } catch (error) {
+            console.error("Erro ao deletar investimento Supabase:", error);
+            showFeedback('Erro ao excluir investimento. Tente novamente.', 'error');
+        }
+    }
+
+    // --- ADICIONADO: Função para iniciar o listener de dados realtime ---
+    function startDataListener() {
+        if (!supabaseClient) return;
+
+        // 1. Terminar subscrição anterior, se houver
+        if (realtimeChannel) {
+            supabaseClient.removeChannel(realtimeChannel);
+        }
+
+        const loadingMessage = document.getElementById('loading-message');
+        if (loadingMessage) loadingMessage.textContent = 'Carregando investimentos...';
+
+        // 2. Criar novo canal de Realtime
+        realtimeChannel = supabaseClient
+            .channel('investimento_changes')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: TABLE_INVESTIMENTOS }, // Escuta por qualquer evento (INSERT, UPDATE, DELETE)
+                (payload) => {
+                    console.log('Realtime change received!', payload.eventType, payload.new || payload.old);
+                    // Quando uma mudança ocorre, re-busca todos os dados para garantir a consistência e ordenação
+                    fetchAndRenderData();
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('Realtime Subscribed.');
+                    fetchAndRenderData(); // Busca inicial após subscrição
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.error('Realtime Channel Error');
+                    if (loadingMessage) loadingMessage.textContent = 'Erro de Realtime. Tentando nova busca...';
+                    fetchAndRenderData(); // Tenta buscar de forma estática
+                }
+            });
+    }
+    // --- FIM DAS ALTERAÇÕES ---
+
+
+    // --- ALTERADO: Função para buscar e renderizar dados (usada na inicialização e em eventos Realtime) ---
+    // Removido o parâmetro 'forceRefresh' pois o Realtime cuida disso automaticamente.
+    async function fetchAndRenderData() {
+        if (!supabaseClient) return;
+        const loadingMessage = document.getElementById('loading-message');
+
+        try {
+            // Buscar todos os investimentos, ordenados por data de resgate
+            const { data: investimentos, error } = await supabaseClient
+                .from(TABLE_INVESTIMENTOS)
+                .select('*')
+                .order('retorno', { ascending: true });
+
+            if (error) throw error;
+
+            renderInvestments(investimentos);
+            updateSummaryAndChart(investimentos);
+
+            if (investimentos.length === 0) {
+                 if (loadingMessage) loadingMessage.textContent = 'Nenhum investimento encontrado. Adicione um novo abaixo.';
+            } else {
+                 if (loadingMessage) loadingMessage.textContent = '';
+            }
+        } catch (error) {
+            console.error("Erro ao buscar dados Supabase:", error);
+            showFeedback('Erro ao buscar dados do Supabase. Verifique RLS ou conexão.', 'error');
+            if (loadingMessage) loadingMessage.textContent = 'Erro ao carregar dados.';
+        }
+    }
+    // --- FIM DAS ALTERAÇÕES ---
+
+
+    // --- RENDERING & CHART ---
+
+    // Renderizar a lista de investimentos (mantida)
+    function renderInvestments(investimentos) {
+        const listEl = document.getElementById('investimento-list');
+        if (!listEl) return;
+        listEl.innerHTML = ''; 
+
+        if (investimentos.length === 0) {
+            listEl.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhum investimento registrado na carteira compartilhada.</p>';
+            return;
+        }
+
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0); 
+
+        // Os dados já devem vir ordenados do fetchAndRenderData/Supabase
+        investimentos.forEach(inv => {
+            const dataRetorno = new Date(inv.retorno);
+            dataRetorno.setHours(0, 0, 0, 0);
+
+            const diffTime = dataRetorno.getTime() - hoje.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            let statusText, statusClass;
+
+            if (diffDays < 0) {
+                statusText = 'Vencido';
+                statusClass = 'bg-red-100 text-[var(--error)]';
+            } else if (diffDays === 0) {
+                statusText = 'Hoje';
+                statusClass = 'bg-yellow-100 text-yellow-700';
+            } else if (diffDays <= 30) {
+                statusText = `Próximo (${diffDays} dias)`;
+                statusClass = 'bg-yellow-100 text-yellow-700';
+            } else {
+                statusText = `Distantes (${diffDays} dias)`;
+                statusClass = 'bg-green-100 text-[var(--success)]';
+            }
+
+            const card = document.createElement('div');
+            card.className = 'bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow';
+            card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <h4 class="text-lg font-bold text-gray-800">${inv.nome}</h4>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full ${statusClass}">${statusText}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+                    <p><span class="font-medium">Investido:</span> <span class="text-[var(--primary)] font-semibold">${formatarMoeda(inv.valor)}</span></p>
+                    <p><span class="font-medium">Resgate Est.:</span> <span class="text-[var(--success)] font-semibold">${formatarMoeda(inv.haver)}</span></p>
+                    <p class="col-span-2"><span class="font-medium">Juros Mensal:</span> ${inv.taxaJuros}%</p>
+                    <p><span class="font-medium">Início:</span> ${inv.entrada}</p>
+                    <p><span class="font-medium">Resgate:</span> ${inv.retorno}</p>
+                    <!-- Exibe o ID completo do criador (deve ser 'criado_por') -->
+                    <p class="col-span-2 text-xs text-gray-400 mt-1 break-words">Criado por: ${inv.criado_por}</p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+                    <!-- Icone de lixeira adicionado ao botão de exclusão, junto com a palavra "Excluir" -->
+                    <button data-id="${inv.id}" class="btn-delete text-sm py-1 px-3 flex items-center space-x-1">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Excluir</span>
+                    </button>
+                </div>
+            `;
+            
+            // Adicionar listener de exclusão
+            const deleteBtn = card.querySelector('.btn-delete');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    // O ID do Supabase pode ser um número ou string dependendo da coluna PK
+                    const id = e.currentTarget.getAttribute('data-id');
+                    showDeleteConfirmation(id);
+                });
+            }
+
+            listEl.appendChild(card);
+        });
+    }
+
+    // Atualizar o resumo e o gráfico (mantida)
+    function updateSummaryAndChart(investimentos) {
+        let totalInvestido = 0;
+        let totalHaver = 0;
+        const dataForChart = {};
+
+        investimentos.forEach(inv => {
+            totalInvestido += inv.valor || 0;
+            totalHaver += inv.haver || 0;
+
+            const nome = inv.nome;
+            dataForChart[nome] = (dataForChart[nome] || 0) + (inv.valor || 0);
         });
 
-        function toggleDarkMode(isDark) {
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            }
-            document.getElementById('darkModeToggleSetting').checked = isDark;
-        }
+        // Atualizar Displays de Total
+        const totalInvestidoDisplay = document.getElementById('totalInvestidoDisplay');
+        const totalHaverDisplay = document.getElementById('totalHaverDisplay');
+        if (totalInvestidoDisplay) totalInvestidoDisplay.textContent = formatarMoeda(totalInvestido);
+        if (totalHaverDisplay) totalHaverDisplay.textContent = formatarMoeda(totalHaver);
 
-        // Aplica o tema salvo ou o padrão do sistema
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const initialDark = savedTheme === 'dark' || (savedTheme === null && prefersDark);
-        toggleDarkMode(initialDark);
+        // Atualizar Gráfico (Chart.js)
+        const labels = Object.keys(dataForChart);
+        const dataValues = Object.values(dataForChart);
+        const backgroundColors = labels.map((_, index) => COLORS[index % COLORS.length]);
 
+        const chartCanvas = document.getElementById('investimentoChart');
+        if (!chartCanvas) return; 
 
-        // Função para renderizar a tabela de Demandas
-        function renderDemandas() {
-            const list = document.getElementById('demandasList');
-            list.innerHTML = ''; // Limpa a lista atual
-
-            if (demandasCache.length === 0) {
-                list.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma demanda ativa encontrada.</td></tr>';
-                return;
-            }
-
-            // O cache já está ordenado pelo mais novo (no carregarDemandas)
-            demandasCache.forEach((demanda, index) => { // Adiciona 'index' para o ID sequencial
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ease-in-out';
-                row.innerHTML = `
-                    <!-- ID Sequencial (index + 1) em vez do ID real do Supabase -->
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${index + 1}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">${demanda.demanda}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">${demanda.contato}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">${demanda.descricao}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">${demanda.status}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <!-- Botões de ação ainda usam o ID real (demanda.ID) para as operações CRUD -->
-                        <button data-id="${demanda.ID}" class="edit-demand-btn text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-600 transition">Editar</button>
-                        <button data-id="${demanda.ID}" class="delete-demand-btn text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-600 transition">Excluir</button>
-                    </td>
-                `;
-                list.appendChild(row);
-            });
-
-            // Adiciona listeners de evento para os botões de edição/exclusão
-            document.querySelectorAll('.edit-demand-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        handleDemandAction('edit', e.target.dataset.id);
-    });
-});
-document.querySelectorAll('.delete-demand-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        handleDemandAction('delete', e.target.dataset.id);
-    });
-});
-        }
-
-        // Função para renderizar a tabela de Contatos
-        function renderContatos() {
-            const list = document.getElementById('contatosList');
-            list.innerHTML = ''; // Limpa a lista atual
-
-            if (contatosCache.length === 0) {
-                list.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Nenhum contato encontrado.</td></tr>';
-                return;
-            }
-
-            // O cache já está ordenado pelo mais novo (no carregarContatos)
-            contatosCache.forEach((contato, index) => { // Adiciona 'index' para o ID sequencial
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ease-in-out';
-                row.innerHTML = `
-                    <!-- ID Sequencial (index + 1) em vez do ID real do Supabase -->
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${index + 1}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${contato.nome}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${contato.telefone || '-'}</td> <!-- Coluna Telefone -->
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${contato.regiao || '-'}</td> <!-- Coluna Região -->
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${contato.endereco || '-'}</td> <!-- Coluna Endereço -->
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <!-- Botões de ação ainda usam o ID real (contato.ID) para as operações CRUD -->
-                        <button data-id="${contato.ID}" class="edit-contact-btn text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-600 transition">Editar</button>
-                        <button data-id="${contato.ID}" class="delete-contact-btn text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-600 transition">Excluir</button>
-                    </td>
-                `;
-                list.appendChild(row);
-            });
-
-            // Adiciona listeners de evento para os botões de edição/exclusão
-            document.querySelectorAll('.edit-contact-btn').forEach(button => {
-                button.addEventListener('click', (e) => openEditContactModal(e.target.dataset.id));
-            });
-            document.querySelectorAll('.delete-contact-btn').forEach(button => {
-                button.addEventListener('click', (e) => deleteContact(e.target.dataset.id));
-            });
-        }
-
-        // Funções de Inicialização de Gráficos (Dashboard)
-        function initializeCharts() {
-            const ctx = document.getElementById('demandasStatusChart').getContext('2d');
-            if (statusChart) {
-                statusChart.destroy();
-            }
-            statusChart = new Chart(ctx, {
+        if (investmentChart) {
+            investmentChart.data.labels = labels;
+            investmentChart.data.datasets[0].data = dataValues;
+            investmentChart.data.datasets[0].backgroundColor = backgroundColors;
+            investmentChart.update();
+        } else {
+            const ctx = chartCanvas.getContext('2d');
+            investmentChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    // Labels atualizadas para refletir os novos status em pt-BR
-                    labels: ['Em Aberto', 'Em Andamento', 'Concluída', 'Cancelada'],
+                    labels: labels,
                     datasets: [{
-                        data: [0, 0, 0, 0], // Inicializa com 0
-                        backgroundColor: ['#ef4444', '#f97316', '#10b981', '#6b7280'], // Vermelho, Laranja, Verde, Cinza
+                        data: dataValues,
+                        backgroundColor: backgroundColors,
                         hoverOffset: 4
                     }]
                 },
@@ -600,540 +862,83 @@ document.querySelectorAll('.delete-demand-btn').forEach(button => {
                         legend: {
                             position: 'top',
                             labels: {
-                                color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151'
+                                boxWidth: 10,
+                                font: {
+                                    family: 'Inter',
+                                    size: 14
+                                }
                             }
                         },
                         title: {
-                            display: false,
+                            display: false
                         }
                     }
                 }
             });
         }
+    }
 
-        // Função crucial atualizada para contabilizar e exibir as novas métricas
-        function updateDashboardMetrics() {
-            // Métrica 1: Total de Contatos
-            const totalContatos = contatosCache.length;
-            const totalContatosEl = document.getElementById('totalContatos');
-            if (totalContatosEl) totalContatosEl.textContent = totalContatos;
 
-            // Métrica 2: Total de Demandas Registradas
-            const totalDemandasRegistradas = demandasCache.length;
-            const totalDemandasRegistradasEl = document.getElementById('totalDemandasRegistradas');
-            if (totalDemandasRegistradasEl) totalDemandasRegistradasEl.textContent = totalDemandasRegistradas;
+    // --- Inicialização e Listeners ---
 
-            // Contagem por Status usando o cache de demandas
-            const statusCounts = demandasCache.reduce((acc, demanda) => {
-                // Usa o status exato em pt-BR
-                acc[demanda.status] = (acc[demanda.status] || 0) + 1;
-                return acc;
-            }, {});
+    window.onload = function () {
+        // Inicializa Supabase e Autenticação
+        initializeSupabase(); 
 
-            // Métrica 3: Demandas em Aberto (Status: "Em Aberto")
-            const emAberto = statusCounts['Em Aberto'] || 0;
-            const emAbertoEl = document.getElementById('demandasEmAberto');
-            if (emAbertoEl) emAbertoEl.textContent = emAberto;
+        // 1. Listener para adicionar novo investimento
+        const invForm = document.getElementById('investimentoForm');
+        if (invForm) invForm.addEventListener('submit', adicionarInvestimento);
 
-            // Métrica 4: Demandas em Andamento (Status: "Em Andamento")
-            const emAndamento = statusCounts['Em Andamento'] || 0;
-            const emAndamentoEl = document.getElementById('demandasEmAndamento');
-            if (emAndamentoEl) emAndamentoEl.textContent = emAndamento;
+        // 2. Listeners para cálculos automáticos no formulário
+        const valorEl = document.getElementById('valor');
+        if (valorEl) valorEl.addEventListener('input', formatarInputMoeda);
+        
+        const entradaEl = document.getElementById('entrada');
+        if (entradaEl) entradaEl.addEventListener('input', calcularEExibirHaverEDias);
 
-            // Métrica 5: Demandas Concluídas (Status: "Concluída")
-            const concluidas = statusCounts['Concluída'] || 0;
-            const concluidasEl = document.getElementById('demandasConcluidas');
-            if (concluidasEl) concluidasEl.textContent = concluidas;
+        const retornoEl = document.getElementById('retorno');
+        if (retornoEl) {
+            retornoEl.addEventListener('input', calcularEExibirHaverEDias);
+            retornoEl.addEventListener('change', calcularEExibirHaverEDias);
+        }
 
-            // Atualiza o gráfico
-            const cancelada = statusCounts['Cancelada'] || 0;
-            if (statusChart) {
-                // A ordem dos dados DEVE corresponder à ordem das labels no initializeCharts
-                statusChart.data.datasets[0].data = [emAberto, emAndamento, concluidas, cancelada];
-                statusChart.update();
-            }
+        const taxaJurosEl = document.getElementById('taxaJuros');
+        if (taxaJurosEl) taxaJurosEl.addEventListener('input', calcularEExibirHaverEDias);
 
-            // Top 5 Demandas (simplificado: 5 mais recentes)
-            const topList = document.getElementById('topDemandasList');
-            if (topList) { // Verifica se o elemento Top List existe
-                topList.innerHTML = '';
-                if (demandasCache.length === 0) {
-                    topList.innerHTML = '<li class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm font-medium">Nenhuma demanda ainda.</li>';
-                } else {
-                    // O cache já está ordenado por ID decrescente
-                    demandasCache.slice(0, 5).forEach(demanda => {
-                        const li = document.createElement('li');
-                        li.className = 'p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm font-medium flex justify-between items-center';
-                        li.innerHTML = `
-                            <span>${demanda.demanda} (${demanda.contato})</span>
-                            <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400">${demanda.status}</span>
-                        `;
-                        topList.appendChild(li);
-                    });
+
+        // 3. Listeners para o Modal de Exclusão
+        const cancelDeleteBtn = document.getElementById('cancel-delete');
+        if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
+
+        const confirmDeleteBtn = document.getElementById('confirm-delete');
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (investmentToDeleteId) {
+                    // Confirma a exclusão e passa o ID
+                    deletarInvestimento(investmentToDeleteId);
                 }
-            }
-        }
-
-        function populateContactSelect() {
-    const select = document.getElementById('demandContactNameSelect');
-    select.innerHTML = '<option value="">Selecione um contato</option>';
-
-    contatosCache.forEach(contato => {
-        const option = document.createElement('option');
-        option.value = contato.nome; // ou contato.ID se quiser usar ID
-        option.textContent = contato.nome;
-        select.appendChild(option);
-    });
-}
-
-        // A nova função loadDemandasOptions() que você precisa para carregar os dados.
-async function loadDemandasOptions() {
-    if (!isAuthenticated) return;
-    const selectElement = document.getElementById('demandTitleSelect');
-    selectElement.innerHTML = '<option value="">Carregando opções...</option>'; // Placeholder temporário
-
-    // Busca o ID e o título da Demanda da tabela 'Demandas'
-    const { data, error } = await supabase
-        .from('Demandas')
-        .select('Demanda');
-
-    if (error) {
-        console.error("Erro ao carregar opções de Demandas:", error);
-        selectElement.innerHTML = '<option value="">Erro ao carregar</option>';
-        return;
-    }
-
-    if (!data || data.length === 0) {
-        selectElement.innerHTML = '<option value="">Nenhuma demanda encontrada</option>';
-        return;
-    }
-
-    // Limpa o seletor e adiciona a opção de placeholder
-    selectElement.innerHTML = '<option value="">Selecione a Demanda</option>';
-
-    // Percorre todos os itens retornados, sem remover duplicatas
-    data.forEach(demanda => {
-        const option = document.createElement('option');
-        option.value = demanda.Demanda; // Usa o ID como valor único
-        option.textContent = demanda.Demanda; // Usa o título como texto visível
-        selectElement.appendChild(option);
-    });
-}
-
-// ...
-// Outras funções e event listeners
-// ...
-
-// Atualizado: O event listener para o botão de 'Nova Demanda' agora chama a nova função.
-document.getElementById('addDemandButton').addEventListener('click', () => {
-    resetDemandForm();
-    populateContactSelect();
-    loadDemandasOptions();
-    demandModal.classList.remove('hidden');
-});
-        async function loadRegiaoOptions() {
-            if (!isAuthenticated) return;
-            const selectElement = document.getElementById('contactRegion');
-            selectElement.innerHTML = '<option value="">Carregando opções...</option>'; // Placeholder temporário
-
-            // Busca todas as demandas para extrair os valores únicos
-            const { data, error } = await supabase
-                .from('Regioes')
-                .select('regiao');
-
-            selectElement.innerHTML = ''; // Limpa antes de popular
-
-            if (error) {
-                console.error("Erro ao carregar opções de Região (Regiões):", error);
-                selectElement.innerHTML = '<option value="">Erro ao carregar</option>';
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                selectElement.innerHTML = '<option value="">Nenhuma região ativa</option>';
-                return;
-            }
-
-            // 1. Extrair os valores da coluna 'regiao' e garantir que não são nulos
-            const allRegiaos = data.map(item => item.regiao).filter(Boolean);
-
-            // 2. Obter valores únicos
-            const uniqueRegiaos = [...new Set(allRegiaos)];
-
-            // 3. Adicionar uma opção de placeholder e as opções únicas
-            selectElement.innerHTML = '<option value="">Selecione a Região</option>';
-
-            uniqueRegiaos.sort().forEach(regiao => {
-                const option = document.createElement('option');
-                option.value = regiao;
-                option.textContent = regiao;
-                selectElement.appendChild(option);
+                hideDeleteConfirmation();
             });
         }
 
 
-        async function carregarDemandas() {
-            if (!isAuthenticated) return;
-            // Conexão com a tabela 'Demandas Ativas'
-            const { data, error } = await supabase
-                .from('Demandas Ativas')
-                .select('*')
-                .order('demanda', { ascending: false }); // Ordena do mais novo para o mais antigo
-
-            if (error) {
-                // Mensagem de erro explícita sobre a conexão em pt-BR
-                console.error("Erro ao carregar demandas:", error);
-                showModal("Erro de Conexão", "Não foi possível carregar as demandas. Verifique se a URL e a chave do Supabase estão corretas. (Erro: Falha ao buscar)");
-            } else {
-                demandasCache = data;
-                renderDemandas();
-                updateDashboardMetrics(); // Atualiza dashboard após carregar demandas
-                loadRegiaoOptions(); // ATUALIZA AS OPÇÕES DE REGIÃO APÓS CARREGAR DEMANDAS
-            }
-        }
-
-        async function carregarContatos() {
-            if (!isAuthenticated) return;
-            // Assumimos que a tabela Contatos do Supabase terá as colunas: nome, telefone, regiao, endereco
-            const { data, error } = await supabase
-                .from('Contatos')
-                .select('ID, nome, telefone, regiao, endereco') // Selecionando apenas as colunas necessárias para o display
-                .order('ID', { ascending: false }); // Ordena do mais novo para o mais antigo
-
-            if (error) {
-                console.error("Erro ao carregar contatos:", error);
-                showModal("Erro de Conexão", "Não foi possível carregar os contatos. Verifique se a URL e a chave do Supabase estão corretas. (Erro: Falha ao buscar)");
-            } else {
-                contatosCache = data;
-                renderContatos();
-                updateDashboardMetrics(); // Atualiza dashboard após carregar contatos
-            }
-        }
-
-        async function deleteContact(id) {
-            // Nota: Não usar confirm() em ambiente Canvas
-            showModal("Confirmação Necessária", "A exclusão de dados não pode ser confirmada neste ambiente. Assumindo 'Sim' para demonstração.");
-
-            const { error } = await supabase
-                .from('Contatos')
-                .delete()
-                .eq('ID', id);
-
-            if (error) {
-                console.error("Erro ao excluir contato:", error);
-                showModal("Erro", `Erro ao excluir contato: ${error.message}`);
-            } else {
-                carregarContatos();
-                showModal("Sucesso", "Contato excluído com sucesso!");
-            }
-        }
-
-
-        // =========================================================================================
-        // EVENT LISTENERS E INICIALIZAÇÃO
-        // =========================================================================================
-
-        // === Lógica de Login ===
-// === Lógica de Login (Real com Supabase Auth) ===
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const loginMessage = document.getElementById('loginMessage');
-
-            // Limpa mensagens anteriores
-            loginMessage.classList.add('hidden');
-            loginMessage.textContent = '';
-            
-            // Chamar o método signInWithPassword do Supabase
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
-
-            if (error) {
-                // Exibe erro de login
-                console.error('Erro de Login:', error.message);
-                loginMessage.textContent = `Falha no login: ${error.message}`;
-                loginMessage.classList.remove('hidden');
-
-            } else if (data.session && data.user) {
-                // Lógica de sucesso (mantida do seu código original)
-                isAuthenticated = true;
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'flex';
-                document.getElementById('userName').textContent = data.user.email; // Melhor usar o email retornado
-
-                // Tenta carregar os dados reais após o login
-                initializeCharts();
-                await carregarContatos();
-                await carregarDemandas();
-
-            } else {
-                 // Caso de erro inesperado
-                 loginMessage.textContent = 'Erro desconhecido. Verifique suas credenciais e confirme seu e-mail.';
-                 loginMessage.classList.remove('hidden');
-            }
-        });
-// ...
-
-        document.getElementById('logoutButton').addEventListener('click', () => {
-            isAuthenticated = false;
-            demandasCache = [];
-            contatosCache = [];
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('mainApp').style.display = 'none';
-
-        });
-
-
-        // === Lógica de Dark Mode ===
-        document.getElementById('toggleDarkMode').addEventListener('click', () => {
-            toggleDarkMode(!document.documentElement.classList.contains('dark'));
-            // Re-inicializa o gráfico para atualizar as cores do texto
-            initializeCharts();
-            updateDashboardMetrics();
-        });
-
-        document.getElementById('toggleDarkModeLogin').addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleDarkMode(!document.documentElement.classList.contains('dark'));
-        });
-
-        document.getElementById('darkModeToggleSetting').addEventListener('change', (e) => {
-            toggleDarkMode(e.target.checked);
-            // Re-inicializa o gráfico para atualizar as cores do texto
-            initializeCharts();
-            updateDashboardMetrics();
-        });
-
-
-        // === Lógica de Tabs ===
-        document.querySelectorAll('.tab-link').forEach(link => {
-            link.addEventListener('click', (e) => {
+        // 4. Listeners de Autenticação
+        const authForm = document.getElementById('auth-form');
+        if (authForm) {
+            authForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const tabName = e.target.closest('.tab-link').dataset.tab;
-
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.getElementById(tabName).classList.add('active');
-
-           // Adiciona as classes de ativação na Sidebar:
-e.target.closest('.tab-link').classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'active-tab');
-e.target.closest('.tab-link').classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700');
-//
-
-                e.target.closest('.tab-link').classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'active-tab');
-                e.target.closest('.tab-link').classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700');
-
-                document.getElementById('pageTitle').textContent = e.target.closest('.tab-link').textContent.trim();
-
-                // Ação especial ao trocar para o dashboard (caso o gráfico não tenha sido inicializado)
-                if (tabName === 'dashboard' && !statusChart) {
-                    initializeCharts();
-                    updateDashboardMetrics();
-                }
+                const email = document.getElementById('auth-email')?.value;
+                const password = document.getElementById('auth-password')?.value;
+                if (email && password) handleAuth(email, password);
             });
-        });
-
-
-        // === Lógica do Modal de Demandas ===
-
-        const demandModal = document.getElementById('demandModal');
-        const demandForm = document.getElementById('demandForm');
-        const demandModalTitle = document.getElementById('demandModalTitle');
-        const demandIdToUpdateInput = document.getElementById('demandIdToUpdateInput');
-
-        function resetDemandForm() {
-            demandForm.reset();
-            demandModalTitle.textContent = "Adicionar Nova Demanda";
-            demandIdToUpdateInput.value = "";
         }
 
-        document.getElementById('addDemandButton').addEventListener('click', () => {
-            resetDemandForm();
-            demandModal.classList.remove('hidden');
-        });
+        const authSwitchBtn = document.getElementById('auth-switch-mode');
+        if (authSwitchBtn) authSwitchBtn.addEventListener('click', toggleAuthMode);
 
-        document.getElementById('closeDemandModalButton').addEventListener('click', () => {
-            demandModal.classList.add('hidden');
-        });
-
-        demandForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const demandId = demandIdToUpdateInput.value;
-                const demanda = document.getElementById('demandTitleSelect').value;
-                const contato = document.getElementById('demandContactNameSelect').value;
-                const descricao = document.getElementById('demandDescription').value;
-                const status = document.getElementById('demandStatus').value; // Usando os status em pt-BR
-
-                let error = null;
-                let message = '';
-
-                if (demandId) {
-                    // Atualizar na tabela 'Demandas Ativas'
-                    const { error: updateError } = await supabase
-                        .from('Demandas Ativas')
-                        .update({ demanda, contato, descricao, status })
-                        .eq('ID', demandId);
-                    error = updateError;
-                    message = "Demanda atualizada com sucesso!";
-                } else {
-                    // Inserir na tabela 'Demandas Ativas'
-                    const { error: insertError } = await supabase
-                        .from('Demandas Ativas')
-                        .insert([{ demanda, contato, descricao, status }]);
-                    error = insertError;
-                    message = "Demanda adicionada com sucesso!";
-                }
-
-
-                if (error) {
-                    console.error("Erro ao processar demanda:", error);
-                    showModal("Erro", `Erro ao processar demanda: ${error.message}`);
-                } else {
-                    demandModal.classList.add('hidden');
-                    resetDemandForm();
-                    carregarDemandas();
-                    showModal("Sucesso", message);
-                }
-            });
-
-        document.getElementById('addDemandButton').addEventListener('click', () => {
-          resetDemandForm();
-          populateContactSelect();      // ← adicionado
-          loadDemandasOptions();  // ← adicionado
-          demandModal.classList.remove('hidden');
-            });
-
-        // === Lógica do Modal de Contatos ===
-
-        const contactModal = document.getElementById('contactModal');
-        const contactForm = document.getElementById('contactForm');
-        const contactModalTitle = document.getElementById('contactModalTitle');
-        const contactIdToUpdateInput = document.getElementById('contactIdToUpdateInput');
-
-        function resetContactForm() {
-            contactForm.reset();
-            contactModalTitle.textContent = "Adicionar Novo Contato";
-            contactIdToUpdateInput.value = "";
-        }
-
-        document.getElementById('addContactButton').addEventListener('click', () => {
-            resetContactForm();
-            contactModal.classList.remove('hidden');
-        });
-
-        document.getElementById('closeContactModalButton').addEventListener('click', () => {
-            contactModal.classList.add('hidden');
-        });
-
-        function openEditContactModal(id) {
-            const contato = contatosCache.find(c => String(c.ID) === id);
-            if (contato) {
-                contactModalTitle.textContent = `Editar Contato #${id}`;
-                contactIdToUpdateInput.value = id;
-                document.getElementById('contactName').value = contato.nome;
-                document.getElementById('contactPhone').value = contato.telefone || '';
-                // O valor deve ser definido diretamente no elemento SELECT
-                document.getElementById('contactRegion').value = contato.regiao || '';
-                document.getElementById('contactAddress').value = contato.endereco || '';
-                // email e tipo não são exibidos no modal
-                contactModal.classList.remove('hidden');
-            } else {
-                showModal("Erro", "Contato não encontrado.");
-            }
-        }
-
-        contactForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const contactId = contactIdToUpdateInput.value;
-                const nome = document.getElementById('contactName').value;
-                const telefone = document.getElementById('contactPhone').value;
-                const regiao = document.getElementById('contactRegion').value; // Agora vem do SELECT
-                const endereco = document.getElementById('contactAddress').value; // Novo campo
-
-                // Manter email e tipo com valores default ou nulos se não forem capturados no formulário
-                const email = ''; // Assumindo que o email não é mais capturado
-                const tipo = 'Cidadão'; // Assumindo um tipo default
-
-                let error = null;
-                let message = '';
-
-                const dataToSave = { nome, telefone, regiao, endereco };
-
-                if (contactId) {
-                    // Atualizar
-                    const { error: updateError } = await supabase
-                        .from('Contatos')
-                        .update(dataToSave)
-                        .eq('ID', contactId);
-                    error = updateError;
-                    message = "Contato atualizado com sucesso!";
-                } else {
-                    // Inserir
-                    const { error: insertError } = await supabase
-                        .from('Contatos')
-                        .insert([dataToSave]);
-                    error = insertError;
-                    message = "Contato adicionado com sucesso!";
-                }
-
-
-                if (error) {
-                    console.error("Erro ao processar contato:", error);
-                    showModal("Erro", `Erro ao processar contato: ${error.message}`);
-                } else {
-                    contactModal.classList.add('hidden'); // Fechar modal de Contatos após sucesso
-                    resetContactForm();
-                    carregarContatos();
-                    showModal("Sucesso", message);
-                }
-            });
-            //
-        //Formatação de exibição de telefone no cadastro de contatos
-        //
-const contactPhone = document.getElementById('contactPhone');
-
-contactPhone.addEventListener('input', function (e) {
-    let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
-
-    if (value.length > 11) value = value.slice(0, 11);
-
-    if (value.length > 0) {
-        value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-    }
-    if (value.length > 9) {
-        value = value.replace(/(\d{5})(\d{4})$/, '$1-$2');
-    } else if (value.length > 5) {
-        value = value.replace(/(\d{4,5})(\d{0,4})$/, '$1-$2');
-    }
-
-    e.target.value = value;
-});
-    }
-
-</script>
-<nav id="bottom-nav" class="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-2xl z-40">
-    <div class="flex h-full justify-around items-center">
-        <a href="#" class="tab-link flex flex-col items-center justify-center h-full w-full text-indigo-600 dark:text-indigo-400 active-tab-mobile" data-tab="dashboard">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 00-1-1H9a1 1 0 00-1 1v4a1 1 0 001 1z"></path></svg>
-            <span class="text-xs mt-1">Dash</span>
-        </a>
-        <a href="#" class="tab-link flex flex-col items-center justify-center h-full w-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400" data-tab="demandas">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-            <span class="text-xs mt-1">Demandas</span>
-        </a>
-        <a href="#" class="tab-link flex flex-col items-center justify-center h-full w-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400" data-tab="contatos">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2a3 3 0 015.356-1.857M7 20h4.444M12 12h.01M17 12h.01M10 5.257V4a1 1 0 011-1h2a1 1 0 011 1v1.257m-4 12V16a1 1 0 011-1h6a1 1 0 011 1v1.257m-8 3H9a1 1 0 00-1 1v1h8v-1a1 1 0 00-1-1h-2"></path></svg>
-            <span class="text-xs mt-1">Contatos</span>
-        </a>
-        <a href="#" class="tab-link flex flex-col items-center justify-center h-full w-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400" data-tab="configuracoes">
-             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <span class="text-xs mt-1">Config.</span>
-        </a>
-    </div>
-</nav>
+        const logoutBtn = document.getElementById('logout-button');
+        if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+    };
+  </script>
 </body>
 </html>
