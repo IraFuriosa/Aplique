@@ -5,13 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gerenciador de Investimentos</title>
-  <!-- Tailwind CSS para estilização moderna e responsiva -->
-  <!-- CORREÇÃO 1: Removido espaço extra -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome para ícones (lixeira) -->
-  <!-- CORREÇÃO 2: Removido espaço extra -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJdE52J1pQ0+wAfrrK5zQ78T7y6mG+W4jWd0P/D0sF0O00g/O0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- Configuração da fonte Inter e estilos aprimorados -->
   <style>
     :root {
       --primary: #4f46e5;
@@ -34,7 +29,7 @@
 
     /* Estilos personalizados para botões usando @apply do Tailwind */
     .btn {
-      @apply font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md;
+    @apply font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm;
     }
 
     .btn:disabled {
@@ -60,7 +55,7 @@
 
     /* Ajuste para o formulário */
     .input-field {
-      @apply p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] w-full;
+     @apply p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] w-full box-border;
     }
 
     /* Estilo para a mensagem de feedback/toast */
@@ -78,18 +73,10 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-  <!-- Mensagem de Feedback (Toast) -->
   <div id="feedback-message" class="fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 translate-y-full max-w-sm">
     <p id="feedback-text" class="font-medium"></p>
   </div>
 
-  <main class="flex-grow container mx-auto p-4 md:p-8">
-    <header class="text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-[var(--primary)]">Gestão Financeira e de Investimentos</h1>
-        <p class="text-gray-500 mt-2">Sua carteira em tempo real e em ambiente colaborativo.</p>
-    </header>
-
-    <!-- Modal de Confirmação de Exclusão -->
     <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
             <h2 class="text-xl font-bold mb-4 text-gray-800">Confirmar Exclusão</h2>
@@ -101,60 +88,82 @@
         </div>
     </div>
 
-    <!-- Container de Autenticação -->
-    <div id="auth-container" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-xl">
-        <h2 id="auth-title" class="text-2xl font-bold mb-6 text-center text-gray-800">Entrar</h2>
-        <form id="auth-form" class="space-y-4">
-            <div>
-                <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" id="auth-email" class="input-field" placeholder="seu.email@exemplo.com" required>
-            </div>
-            <div>
-                <label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-                <input type="password" id="auth-password" class="input-field" placeholder="••••••••" required>
-            </div>
-            <button type="submit" id="login-button" class="btn btn-primary w-full">Entrar</button>
-        </form>
-        <button id="auth-switch-mode" class="mt-4 text-sm w-full text-center text-[var(--primary)] hover:text-[var(--primary-dark)] transition-colors">
-            Não tem conta? Cadastre-se
-        </button>
+    <div id="auth-container" class="flex items-center justify-center min-h-screen p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <div class="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] p-6 text-center">
+      <h1 class="text-2xl font-bold text-white">Gestão Financeira</h1>
     </div>
+    <div class="p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">Acesso (Login)</h2>
+      <form id="auth-form" class="space-y-5">
+        <div>
+          <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+          <input
+            type="email"
+            id="auth-email"
+            class="input-field w-full"
+            placeholder="seu.email@exemplo.com"
+            required
+          />
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label for="auth-password" class="block text-sm font-medium text-gray-700">Senha</label>
+          </div>
+          <input
+            type="password"
+            id="auth-password"
+            class="input-field w-full"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+        <button type="submit" id="login-button" class="btn btn-primary w-full py-3 text-base">
+          Entrar
+        </button>
+        <p class="text-center text-sm text-gray-500 pt-2">
+            Não é permitido criar novas contas. Apenas acesso a usuários existentes.
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
 
-    <!-- Container da Aplicação (Visível após o login) -->
     <div id="app-container" class="hidden">
         <div class="flex justify-between items-center mb-6 p-4 bg-white rounded-xl shadow-lg">
             <div class="flex flex-col sm:flex-row sm:items-center">
                 <p class="text-sm text-gray-500 mr-4">Logado como:</p>
                 <p id="user-email-display" class="font-medium text-gray-800 break-all"></p>
-                <!-- O ID do usuário logado é crucial para debug em apps colaborativos -->
                 <p id="user-id-display" class="text-xs text-gray-400 mt-1 sm:mt-0 sm:ml-4"></p>
             </div>
             <button id="logout-button" class="btn btn-secondary ml-4">Sair</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Coluna 1: Cadastro de Novo Investimento -->
             <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-xl h-fit">
                 <h2 class="text-2xl font-bold mb-6 text-gray-800">Cadastrar Novo Investimento</h2>
                 <form id="investimentoForm" class="space-y-4">
 
                     <div>
-                        <label for="nomeTipo" class="block text-sm font-medium text-gray-700 mb-1">Nome/Tipo do Investimento</label>
+                        <label for="nomeTipo" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
                         <select id="nomeTipo" class="input-field" required>
-                            <!-- Opções carregadas via JS -->
-                            <option value="" disabled selected>Carregando Tipos...</option>
+                            <option value="" disabled selected>Carregando...</option>
                         </select>
                     </div>
 
                     <div>
                         <label for="taxaJuros" class="block text-sm font-medium text-gray-700 mb-1">Taxa de Juros Mensal (%)</label>
-                        <input type="number" id="taxaJuros" class="input-field" placeholder="Ex: 0.8" step="0.01" min="0" required>
+                        <input type="number" id="taxaJuros" class="input-field" placeholder="Ex: 10" step="0.01" min="0" required>
                     </div>
 
-                    <div>
-                        <label for="valor" class="block text-sm font-medium text-gray-700 mb-1">Valor Investido (R$)</label>
-                        <input type="text" id="valor" class="input-field" placeholder="R$ 1.000,00" required>
-                    </div>
+                  <div>
+                     <label for="valor" class="block text-sm font-medium text-gray-700 mb-1">Valor Investido (R$)</label>
+                     <input type="text" id="valor" class="input-field" placeholder="R$ 1.000,00" required>
+                 </div>
+                 <div>
+                    <label for="haverEstimado" class="block text-sm font-medium text-gray-700 mb-1">Valor de Resgate (R$)</label>
+                     <input type="text" id="haverEstimado" class="input-field" placeholder="R$ 1.200,00" required>
+                </div>
 
                     <div>
                         <label for="entrada" class="block text-sm font-medium text-gray-700 mb-1">Data de Início</label>
@@ -166,25 +175,17 @@
                         <input type="date" id="retorno" class="input-field" required>
                     </div>
 
-                    <!-- Campos de Cálculo Automático -->
                     <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
                         <div>
                             <p class="text-sm font-medium text-gray-700">Prazo Total em Dias:</p>
                             <p id="diasTotaisDisplay" class="font-bold text-lg text-[var(--primary)]">0 Dias</p>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-700">Valor de Resgate Estimado (Haver):</p>
-                            <p id="haverEstimadoDisplay" class="font-bold text-lg text-[var(--success)]">R$ 0,00</p>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-full">Adicionar Investimento</button>
+             </div>                    
+               <button type="submit" class="btn btn-primary w-full">Adicionar Investimento</button>
                 </form>
             </div>
 
-            <!-- Coluna 2 e 3: Gráfico e Lista de Investimentos -->
             <div class="lg:col-span-2 space-y-8">
-                <!-- Resumo e Gráfico -->
                 <div class="bg-white p-6 rounded-xl shadow-xl">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Resumo da Carteira (Global)</h2>
 
@@ -205,13 +206,11 @@
                     </div>
                 </div>
 
-                <!-- Lista de Investimentos -->
                 <div class="bg-white p-6 rounded-xl shadow-xl">
                     <h2 class="text-2xl font-bold mb-6 text-gray-800">Carteira Compartilhada</h2>
                     <div id="investimento-list" class="space-y-4">
                         <p class="text-gray-500 text-center py-4" id="loading-message">Carregando investimentos...</p>
-                        <!-- Investimentos serão listados aqui -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -219,41 +218,34 @@
 
   </main>
 
-  <footer class="bg-white mt-8 p-4 text-center text-sm text-gray-500 border-t">
-    Gerenciador de Investimentos &copy; 2025 | Powered by Supabase & Chart.js
-  </footer>
-
-  <!-- Bibliotecas JS -->
-  <!-- CORREÇÃO 3: Removido espaço extra -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <!-- Supabase CDN (Substituindo Firebase) -->
-  <!-- CORREÇÃO 4: Removido espaço extra -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script type="module">
     // Variáveis globais de ambiente (Assumindo que são fornecidas pelo ambiente)
-    // Usando variáveis globais simuladas para URL e chave anônima do Supabase
-    // CORREÇÃO 5: Removido espaço extra
     const SUPABASE_URL = typeof __supabase_url !== 'undefined' ? __supabase_url : 'https://odaalhsghdmpyhgnblml.supabase.co';
-    // CORREÇÃO 6: Removido espaço extra
     const SUPABASE_ANON_KEY = typeof __supabase_anon_key !== 'undefined' ? __supabase_anon_key : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYWFsaHNnaGRtcHloZ25ibG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzMyODUsImV4cCI6MjA3NjU0OTI4NX0.J3bgvqGOh2KsNPhuQbnAcGsmNnsqxktIygOpJqr1cHM';
 
     // Constantes
-    const DIAS_NO_MES = 30.4375; // Média de dias por mês para cálculo de juros
+    const DIAS_NO_MES = 30.4375; 
     const PRIMARY_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
     const SUCCESS_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--success').trim();
     const ERROR_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--error').trim();
     const COLORS = [PRIMARY_COLOR, SUCCESS_COLOR, '#3b82f6', '#f59e0b', '#14b8a6', '#8b5cf6', '#ec4899', '#f97316'];
+    
+    // --- ADICIONADO: Variáveis para controle de inatividade e cálculo bidirecional ---
+    let inactivityTimer;
+    const INACTIVITY_TIMEOUT_MS = 1800000; // 30 minutos em milissegundos
+    let isUpdatingFromValor = false;
+    let isUpdatingFromHaver = false;
+    // --- FIM VARIÁVEIS ADICIONADAS ---
 
     // Instâncias Supabase
-    // Renomeado para supabaseClient para evitar conflito com o objeto global Supabase
     let supabaseClient = null; 
     let currentUserId = null; 
     let investmentChart = null;
-    let investmentToDeleteId = null; // ID do investimento para exclusão
-    // --- ADICIONADO: Variável para armazenar o canal de Realtime ---
+    let investmentToDeleteId = null; 
     let realtimeChannel = null;
-    // --- FIM DAS ALTERAÇÕES ---
 
     // Nomes das tabelas
     const TABLE_INVESTIMENTOS = 'INVESTIMENTO';
@@ -262,15 +254,11 @@
 
     // --- UTILS ---
 
-    // Função para exibir mensagem de feedback (Toast)
     function showFeedback(message, type = 'success') {
         const feedbackEl = document.getElementById('feedback-message');
         const textEl = document.getElementById('feedback-text');
 
-        if (!feedbackEl || !textEl) {
-            console.error("Elementos de feedback (Toast) não encontrados.");
-            return; 
-        }
+        if (!feedbackEl || !textEl) return; 
 
         const classes = {
             'success': 'bg-[var(--success)] text-white',
@@ -278,116 +266,149 @@
             'info': 'bg-[var(--primary)] text-white'
         };
 
-        // Resetar classes e aplicar novas
         feedbackEl.className = 'fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 max-w-sm';
-        
-        // CORREÇÃO: Usar split(' ') e spread para adicionar cada classe separadamente
         const classListToAdd = (classes[type] || classes['info']).split(' ');
-        feedbackEl.classList.add(...classListToAdd); // Aplica as classes de cor e texto
+        feedbackEl.classList.add(...classListToAdd); 
 
         textEl.textContent = message;
 
-        // Mostrar
         setTimeout(() => {
             feedbackEl.classList.add('show', 'opacity-100');
         }, 10);
 
-        // Esconder após 4 segundos
         setTimeout(() => {
             feedbackEl.classList.remove('show', 'opacity-100');
         }, 4000);
     }
     
-    // Função para formatar números como moeda brasileira
     function formatarMoeda(valor) {
-        if (typeof valor !== 'number') return 'R$ 0,00';
+        if (typeof valor !== 'number' || isNaN(valor)) return 'R$ 0,00';
         return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
-    
-    // Função para formatar o input de moeda em tempo real
-    function formatarInputMoeda(e) {
-        let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
-        
-        let floatValue = parseFloat(value) / 100;
-        
-        e.target.value = floatValue.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-            minimumFractionDigits: 2
-        }).replace('R$', '').trim();
+
+    function parseMoedaParaNumero(valorStr) {
+         if (!valorStr) return 0;
+        return parseFloat(valorStr.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
     }
 
-    // Função que calcula o haver (resgate estimado) usando juros compostos
+    function formatarInputMoeda(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        let floatValue = parseFloat(value) / 100;
+        if (isNaN(floatValue)) floatValue = 0;
+        e.target.value = formatarMoeda(floatValue).replace('R$', '').trim();
+    }
+
+    // Calcular Haver (resgate) a partir do valor investido
     function calcularHaver(valor, taxaMensal, diasTotais) {
         if (diasTotais <= 0 || valor <= 0 || taxaMensal <= 0) return 0;
-
         const meses = diasTotais / DIAS_NO_MES;
         const taxaDecimal = taxaMensal / 100;
-        
-        // Fórmula de juros compostos: M = C * (1 + i)^t
-        const haver = valor * Math.pow((1 + taxaDecimal), meses);
-        return haver;
+        return valor * Math.pow(1 + taxaDecimal, meses);
     }
 
-    // Função que calcula e exibe o haver e o prazo total
-    function calcularEExibirHaverEDias() {
-        const valorInput = document.getElementById('valor')?.value;
-        const taxaInput = parseFloat(document.getElementById('taxaJuros')?.value);
+    // --- ADICIONADO: Cálculo inverso ---
+    // Calcular valor investido a partir do Haver (resgate)
+    function calcularValorInvestido(haver, taxaMensal, diasTotais) {
+        if (diasTotais <= 0 || haver <= 0 || taxaMensal <= 0) return 0;
+        const meses = diasTotais / DIAS_NO_MES;
+        const taxaDecimal = taxaMensal / 100;
+        return haver / Math.pow(1 + taxaDecimal, meses);
+    }
+    // --- FIM ADICIONADO ---
+    
+    // --- ADICIONADO: Função para cálculo bidirecional ---
+    function calcularValoresBidirecionais() {
+        const valorEl = document.getElementById('valor');
+        const haverEl = document.getElementById('haverEstimado');
+        const taxaInput = parseFloat(document.getElementById('taxaJuros')?.value) || 0;
         const entradaInput = document.getElementById('entrada')?.value;
         const retornoInput = document.getElementById('retorno')?.value;
 
-        const diasDisplay = document.getElementById('diasTotaisDisplay');
-        const haverDisplay = document.getElementById('haverEstimadoDisplay');
-
-        if (!valorInput || !taxaInput || !entradaInput || !retornoInput || !diasDisplay || !haverDisplay) {
-            if (diasDisplay) diasDisplay.textContent = '0 Dias';
-            if (haverDisplay) haverDisplay.textContent = 'R$ 0,00';
-            return;
+        // Se faltarem dados essenciais para o cálculo (taxa, datas), apenas atualiza o prazo
+        if (!taxaInput || !entradaInput || !retornoInput) {
+             document.getElementById('diasTotaisDisplay').textContent = '0 Dias';
+             return;
         }
 
-        // 1. Converter o valor do input (R$ X.XXX,XX) para número
-        const valorNumerico = parseFloat(valorInput.replace(/[R$.]/g, '').replace(',', '.'));
-        
-        // 2. Calcular Dias Totais
-        let diasTotais = 0;
+        // Calcular dias totais
         const dataInicio = new Date(entradaInput);
         const dataResgate = new Date(retornoInput);
-            
         const diffTime = Math.abs(dataResgate.getTime() - dataInicio.getTime());
-        diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        document.getElementById('diasTotaisDisplay').textContent = `${diasTotais} Dias`;
+        
+        // Verifica se as datas são válidas
+        if (diasTotais <= 0) return;
 
-        // 3. Calcular Haver
-        let haver = 0;
-        if (valorNumerico > 0 && taxaInput > 0 && diasTotais > 0) {
-            haver = calcularHaver(valorNumerico, taxaInput, diasTotais);
+        // 1. Atualizar Haver se Valor foi alterado (e não está sendo atualizado por Haver)
+        if (valorEl && !isUpdatingFromHaver) {
+            const valor = parseMoedaParaNumero(valorEl.value);
+            if (valor > 0) {
+                const haver = calcularHaver(valor, taxaInput, diasTotais);
+                if (haver > 0 && haverEl) {
+                    isUpdatingFromValor = true;
+                    haverEl.value = formatarMoeda(haver).replace('R$', '').trim();
+                    setTimeout(() => isUpdatingFromValor = false, 50);
+                }
+            }
         }
 
-        // 4. Exibir resultados
-        diasDisplay.textContent = `${diasTotais} Dias`;
-        haverDisplay.textContent = formatarMoeda(haver);
+        // 2. Atualizar Valor se Haver foi alterado (e não está sendo atualizado por Valor)
+        if (haverEl && !isUpdatingFromValor) {
+            const haver = parseMoedaParaNumero(haverEl.value);
+            if (haver > 0) {
+                const valor = calcularValorInvestido(haver, taxaInput, diasTotais);
+                if (valor > 0 && valorEl) {
+                    isUpdatingFromHaver = true;
+                    valorEl.value = formatarMoeda(valor).replace('R$', '').trim();
+                    setTimeout(() => isUpdatingFromHaver = false, 50);
+                }
+            }
+        }
     }
+    // --- FIM ADICIONADO ---
+    
+    // --- ADICIONADO: Funções de Logout por Inatividade ---
+    function resetInactivityTimer() {
+        if (!currentUserId) return;
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(handleInactivityLogout, INACTIVITY_TIMEOUT_MS);
+    }
+
+    function handleInactivityLogout() {
+        if (currentUserId) {
+            showFeedback('Sessão encerrada por inatividade.', 'info');
+            handleLogout(); 
+        }
+    }
+    
+    function setupInactivityListeners() {
+        const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+        activityEvents.forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, false);
+        });
+    }
+    // --- FIM ADICIONADO ---
+
 
     // --- SUPABASE / AUTH ---
 
-    // Inicialização do Supabase e Autenticação
     async function initializeSupabase() {
         try {
             if (SUPABASE_URL.includes('your-supabase-url') || SUPABASE_ANON_KEY.includes('your-anon-key')) {
-                console.error("Supabase Configuração não definida. Por favor, forneça as chaves SUPABASE_URL e SUPABASE_ANON_KEY.");
+                console.error("Supabase Configuração não definida.");
                 showFeedback('Erro de configuração: Chaves do Supabase não definidas.', 'error');
                 return;
             }
             
-            // CORREÇÃO DO ERRO 1: Chama createClient no objeto global window.supabase e armazena na variável local supabaseClient
             if (window.supabase && typeof window.supabase.createClient === 'function') {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } else {
-                console.error("Supabase CDN não carregado corretamente. 'window.supabase.createClient' não é uma função.");
+                console.error("Supabase CDN não carregado corretamente.");
                 showFeedback('Erro fatal: Supabase CDN não carregado. Verifique a conexão.', 'error');
                 return;
             }
             
-            // Listener de estado de autenticação (Substitui onAuthStateChanged)
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 const authContainer = document.getElementById('auth-container');
                 const appContainer = document.getElementById('app-container');
@@ -403,18 +424,18 @@
                     
                     if (authContainer) authContainer.classList.add('hidden');
                     if (appContainer) appContainer.classList.remove('hidden');
-                    loadNames(); // Carregar nomes após login
-                    // --- ADICIONADO: Iniciar o listener de dados realtime ---
+                    
+                    loadNames(); 
                     startDataListener();
-                    // --- FIM DAS ALTERAÇÕES ---
+                    
+                    resetInactivityTimer(); // INICIA o monitor de inatividade
                 } else {
                     currentUserId = null;
-                    // --- ADICIONADO: Desinscrever do canal de realtime ao sair ---
+                    clearTimeout(inactivityTimer); // Para o monitor de inatividade
                     if (realtimeChannel) {
                         supabaseClient.removeChannel(realtimeChannel);
                         realtimeChannel = null;
                     }
-                    // --- FIM DAS ALTERAÇÕES ---
                     if (authContainer) authContainer.classList.remove('hidden');
                     if (appContainer) appContainer.classList.add('hidden');
                 }
@@ -426,81 +447,33 @@
         }
     }
 
-    // Gerenciar Login/Cadastro
+    // --- MODIFICADO: Apenas login, sem cadastro ---
     async function handleAuth(email, password) {
-        if (!supabaseClient) return;
-
-        const titleEl = document.getElementById('auth-title');
+       if (!supabaseClient) return;
         const submitButton = document.getElementById('login-button');
-        if (!titleEl || !submitButton) return;
+        if (!submitButton) return;
 
-        const isLogin = titleEl.textContent === 'Entrar';
         submitButton.disabled = true;
-        submitButton.textContent = isLogin ? 'Entrando...' : 'Cadastrando...';
+        submitButton.textContent = 'Entrando...';
 
         try {
-            let result;
-            if (isLogin) {
-                // Login
-                result = await supabaseClient.auth.signInWithPassword({ email, password });
-            } else {
-                // Cadastro (Sign Up)
-                result = await supabaseClient.auth.signUp({ email, password });
-            }
-
+            // Tenta apenas o login
+            const result = await supabaseClient.auth.signInWithPassword({ email, password });
             if (result.error) throw result.error;
-            
-            // Sucesso
-            if (isLogin) {
-                showFeedback('Login realizado com sucesso!');
-            } else {
-                // Nota: O Supabase por padrão envia um email de confirmação.
-                // Aqui simplificamos a experiência de imediato.
-                showFeedback('Conta criada com sucesso! Verifique seu email para confirmação (se RLS estiver ativo).', 'success');
-            }
-            
+            showFeedback('Login realizado com sucesso!');
         } catch (error) {
             console.error("Erro de autenticação Supabase:", error);
-            let errorMessage = "Ocorreu um erro de autenticação.";
-            // Mensagens de erro mais específicas do Supabase (postgres/auth)
-            if (error.message.includes('AuthApiError')) {
-                errorMessage = 'Credenciais inválidas ou conta não confirmada.';
-            } else if (error.message.includes('Password should be at least 6 characters')) {
-                errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
-            } else if (error.code === '23505') { // Código de erro comum de violação de restrição de unicidade (e-mail já existe)
-                errorMessage = 'Este email já está cadastrado. Tente fazer login.';
-            } else {
-                errorMessage = error.message;
-            }
-
+            // Mensagem clara sobre a ausência de cadastro
+            let errorMessage = "Credenciais inválidas. Não é permitido criar novas contas.";
             showFeedback(errorMessage, 'error');
         } finally {
             submitButton.disabled = false;
-            submitButton.textContent = isLogin ? 'Entrar' : 'Cadastrar';
+            submitButton.textContent = 'Entrar';
         }
     }
-
-    // Mudar entre Login e Cadastro
-    function toggleAuthMode() {
-        const title = document.getElementById('auth-title');
-        const button = document.getElementById('login-button');
-        const link = document.getElementById('auth-switch-mode');
-        if (!title || !button || !link) return;
-
-        const isLogin = title.textContent === 'Entrar';
-
-        if (isLogin) {
-            title.textContent = 'Criar Conta';
-            button.textContent = 'Cadastrar';
-            link.textContent = 'Já tem conta? Entrar';
-        } else {
-            title.textContent = 'Entrar';
-            button.textContent = 'Entrar';
-            link.textContent = 'Não tem conta? Cadastre-se';
-        }
-    }
-
-    // Logout
+    // --- FIM MODIFICADO ---
+    
+    // --- MODIFICADO: Adicionado limpeza do timer de inatividade ---
     async function handleLogout() {
         if (!supabaseClient) return;
 
@@ -508,24 +481,24 @@
             const { error } = await supabaseClient.auth.signOut();
             if (error) throw error;
             showFeedback('Você saiu da conta.', 'info');
+            clearTimeout(inactivityTimer); 
             // O onAuthStateChange cuidará da transição de UI
         } catch (error) {
             console.error("Erro ao fazer logout:", error);
             showFeedback('Erro ao fazer logout.', 'error');
         }
     }
+    // --- FIM MODIFICADO ---
 
     // --- DATA / SUPABASE POSTGRES ---
 
-    // Carregar Nomes/Tipos de Investimento (Tabela de Referência)
     async function loadNames() {
         if (!supabaseClient) return;
         const selectEl = document.getElementById('nomeTipo');
         if (!selectEl) return;
-        selectEl.innerHTML = `<option value="" disabled selected>Carregando Tipos...</option>`; // Limpar e mostrar loading
+        selectEl.innerHTML = `<option value="" disabled selected>Carregando Tipos...</option>`; 
 
         try {
-            // Tentar buscar nomes
             let { data: nomes, error } = await supabaseClient
                 .from(TABLE_NOMES)
                 .select('nome')
@@ -534,7 +507,6 @@
             if (error) throw error;
 
             if (!nomes || nomes.length === 0) {
-                // Se a tabela estiver vazia, inserir valores iniciais (Mocados)
                 const initialNames = [
                     { nome: "Ações" },
                     { nome: "Renda Fixa" },
@@ -542,11 +514,10 @@
                     { nome: "Criptomoedas" }
                 ];
                 await supabaseClient.from(TABLE_NOMES).insert(initialNames);
-                nomes = initialNames; // Usar a lista recém-criada
+                nomes = initialNames; 
             }
             
-            // Renderizar opções
-            selectEl.innerHTML = '<option value="" disabled selected>Selecione um Tipo</option>';
+            selectEl.innerHTML = '<option value="" disabled selected>Selecione</option>';
             nomes.forEach(item => {
                 selectEl.innerHTML += `<option value="${item.nome}">${item.nome}</option>`;
             });
@@ -559,7 +530,6 @@
         }
     }
 
-    // Adicionar novo investimento
     async function adicionarInvestimento(e) {
         e.preventDefault();
 
@@ -571,49 +541,41 @@
         const form = e.target;
         const nomeTipo = form.nomeTipo.value;
         const taxaJuros = parseFloat(form.taxaJuros.value);
-        const valorInput = form.valor.value;
+        // Usa o haverEstimado, pois este é o valor que o usuário pode ter inserido ou que foi calculado
+        const haverNumerico = parseMoedaParaNumero(form.haverEstimado.value);
+        const valorNumerico = parseMoedaParaNumero(form.valor.value); // O valor Investido final
         const dataInicio = form.entrada.value;
         const dataResgate = form.retorno.value;
 
-        const valorNumerico = parseFloat(valorInput.replace(/[R$.]/g, '').replace(',', '.'));
         
-        const dataInic = new Date(dataInicio);
-        const dataResg = new Date(dataResgate);
-        const diffTime = Math.abs(dataResg.getTime() - dataInic.getTime());
-        const diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const haver = calcularHaver(valorNumerico, taxaJuros, diasTotais);
-
-        if (haver === 0) {
-             showFeedback('Verifique os valores de Juros, Valor e Datas. Haver estimado não pode ser zero.', 'error');
+        if (valorNumerico <= 0 || haverNumerico <= 0) {
+             showFeedback('Os valores de Investido e Haver Estimado devem ser maiores que zero.', 'error');
              return;
         }
+
 
         const submitButton = form.querySelector('button[type="submit"]');
         submitButton.disabled = true;
         submitButton.textContent = 'Adicionando...';
         
         try {
-                        const { error } = await supabaseClient
+            const { error } = await supabaseClient
                 .from(TABLE_INVESTIMENTOS)
                 .insert([{
                     nome: nomeTipo,
-                    valor: valorNumerico,
+                    valor: valorNumerico, // Valor Investido
                     entrada: dataInicio,
                     retorno: dataResgate,
-                    haver: haver,
+                    haver: haverNumerico, // Valor de Resgate
+                    taxaJuros: taxaJuros, // Taxa de Juros (adicionado ao objeto de inserção)
                 }]);
 
             if (error) throw error;
 
             showFeedback('Investimento adicionado com sucesso!');
             form.reset();
-            const diasDisplay = document.getElementById('diasTotaisDisplay');
-            const haverDisplay = document.getElementById('haverEstimadoDisplay');
-            if (diasDisplay) diasDisplay.textContent = '0 Dias';
-            if (haverDisplay) haverDisplay.textContent = 'R$ 0,00';
-
-            // A atualização agora é feita automaticamente pelo Realtime listener
-            // fetchAndRenderData(); // Esta linha NÃO é mais necessária aqui
+            // Resetar displays de cálculo após envio
+            document.getElementById('diasTotaisDisplay').textContent = '0 Dias';
 
         } catch (error) {
             console.error("Erro ao adicionar investimento Supabase:", error);
@@ -624,8 +586,6 @@
         }
     }
     
-    // Funções de Modal e Deleção (mantidas)
-
     function showDeleteConfirmation(id) {
         const modal = document.getElementById('delete-modal');
         if (!modal) return;
@@ -649,23 +609,19 @@
             const { error } = await supabaseClient
                 .from(TABLE_INVESTIMENTOS)
                 .delete()
-                .eq('id', id); // Filtra pelo ID
+                .eq('id', id); 
 
             if (error) throw error;
             showFeedback('Investimento excluído com sucesso!', 'info');
-            // A atualização agora é feita automaticamente pelo Realtime listener
-            // fetchAndRenderData(); // Esta linha NÃO é mais necessária aqui
         } catch (error) {
             console.error("Erro ao deletar investimento Supabase:", error);
             showFeedback('Erro ao excluir investimento. Tente novamente.', 'error');
         }
     }
 
-    // --- ADICIONADO: Função para iniciar o listener de dados realtime ---
     function startDataListener() {
         if (!supabaseClient) return;
 
-        // 1. Terminar subscrição anterior, se houver
         if (realtimeChannel) {
             supabaseClient.removeChannel(realtimeChannel);
         }
@@ -673,40 +629,33 @@
         const loadingMessage = document.getElementById('loading-message');
         if (loadingMessage) loadingMessage.textContent = 'Carregando investimentos...';
 
-        // 2. Criar novo canal de Realtime
         realtimeChannel = supabaseClient
             .channel('investimento_changes')
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: TABLE_INVESTIMENTOS }, // Escuta por qualquer evento (INSERT, UPDATE, DELETE)
+                { event: '*', schema: 'public', table: TABLE_INVESTIMENTOS }, 
                 (payload) => {
                     console.log('Realtime change received!', payload.eventType, payload.new || payload.old);
-                    // Quando uma mudança ocorre, re-busca todos os dados para garantir a consistência e ordenação
                     fetchAndRenderData();
                 }
             )
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
                     console.log('Realtime Subscribed.');
-                    fetchAndRenderData(); // Busca inicial após subscrição
+                    fetchAndRenderData(); 
                 } else if (status === 'CHANNEL_ERROR') {
                     console.error('Realtime Channel Error');
                     if (loadingMessage) loadingMessage.textContent = 'Erro de Realtime. Tentando nova busca...';
-                    fetchAndRenderData(); // Tenta buscar de forma estática
+                    fetchAndRenderData(); 
                 }
             });
     }
-    // --- FIM DAS ALTERAÇÕES ---
 
-
-    // --- ALTERADO: Função para buscar e renderizar dados (usada na inicialização e em eventos Realtime) ---
-    // Removido o parâmetro 'forceRefresh' pois o Realtime cuida disso automaticamente.
     async function fetchAndRenderData() {
         if (!supabaseClient) return;
         const loadingMessage = document.getElementById('loading-message');
 
         try {
-            // Buscar todos os investimentos, ordenados por data de resgate
             const { data: investimentos, error } = await supabaseClient
                 .from(TABLE_INVESTIMENTOS)
                 .select('*')
@@ -728,12 +677,10 @@
             if (loadingMessage) loadingMessage.textContent = 'Erro ao carregar dados.';
         }
     }
-    // --- FIM DAS ALTERAÇÕES ---
 
 
     // --- RENDERING & CHART ---
 
-    // Renderizar a lista de investimentos (mantida)
     function renderInvestments(investimentos) {
         const listEl = document.getElementById('investimento-list');
         if (!listEl) return;
@@ -747,7 +694,6 @@
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0); 
 
-        // Os dados já devem vir ordenados do fetchAndRenderData/Supabase
         investimentos.forEach(inv => {
             const dataRetorno = new Date(inv.retorno);
             dataRetorno.setHours(0, 0, 0, 0);
@@ -781,14 +727,10 @@
                 <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
                     <p><span class="font-medium">Investido:</span> <span class="text-[var(--primary)] font-semibold">${formatarMoeda(inv.valor)}</span></p>
                     <p><span class="font-medium">Resgate Est.:</span> <span class="text-[var(--success)] font-semibold">${formatarMoeda(inv.haver)}</span></p>
-                    <p class="col-span-2"><span class="font-medium">Juros Mensal:</span> ${inv.taxaJuros}%</p>
                     <p><span class="font-medium">Início:</span> ${inv.entrada}</p>
                     <p><span class="font-medium">Resgate:</span> ${inv.retorno}</p>
-                    <!-- Exibe o ID completo do criador (deve ser 'criado_por') -->
-                    <p class="col-span-2 text-xs text-gray-400 mt-1 break-words">Criado por: ${inv.criado_por}</p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-                    <!-- Icone de lixeira adicionado ao botão de exclusão, junto com a palavra "Excluir" -->
                     <button data-id="${inv.id}" class="btn-delete text-sm py-1 px-3 flex items-center space-x-1">
                         <i class="fas fa-trash-alt"></i>
                         <span>Excluir</span>
@@ -796,11 +738,9 @@
                 </div>
             `;
             
-            // Adicionar listener de exclusão
             const deleteBtn = card.querySelector('.btn-delete');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', (e) => {
-                    // O ID do Supabase pode ser um número ou string dependendo da coluna PK
                     const id = e.currentTarget.getAttribute('data-id');
                     showDeleteConfirmation(id);
                 });
@@ -810,7 +750,6 @@
         });
     }
 
-    // Atualizar o resumo e o gráfico (mantida)
     function updateSummaryAndChart(investimentos) {
         let totalInvestido = 0;
         let totalHaver = 0;
@@ -824,13 +763,11 @@
             dataForChart[nome] = (dataForChart[nome] || 0) + (inv.valor || 0);
         });
 
-        // Atualizar Displays de Total
         const totalInvestidoDisplay = document.getElementById('totalInvestidoDisplay');
         const totalHaverDisplay = document.getElementById('totalHaverDisplay');
         if (totalInvestidoDisplay) totalInvestidoDisplay.textContent = formatarMoeda(totalInvestido);
         if (totalHaverDisplay) totalHaverDisplay.textContent = formatarMoeda(totalHaver);
 
-        // Atualizar Gráfico (Chart.js)
         const labels = Object.keys(dataForChart);
         const dataValues = Object.values(dataForChart);
         const backgroundColors = labels.map((_, index) => COLORS[index % COLORS.length]);
@@ -884,26 +821,29 @@
     window.onload = function () {
         // Inicializa Supabase e Autenticação
         initializeSupabase(); 
+        
+        // ADICIONADO: Configura os listeners de atividade para o logout por inatividade
+        setupInactivityListeners();
 
         // 1. Listener para adicionar novo investimento
         const invForm = document.getElementById('investimentoForm');
         if (invForm) invForm.addEventListener('submit', adicionarInvestimento);
 
-        // 2. Listeners para cálculos automáticos no formulário
+        // 2. Listeners para cálculos bidirecionais automáticos no formulário
         const valorEl = document.getElementById('valor');
-        if (valorEl) valorEl.addEventListener('input', formatarInputMoeda);
-        
-        const entradaEl = document.getElementById('entrada');
-        if (entradaEl) entradaEl.addEventListener('input', calcularEExibirHaverEDias);
-
-        const retornoEl = document.getElementById('retorno');
-        if (retornoEl) {
-            retornoEl.addEventListener('input', calcularEExibirHaverEDias);
-            retornoEl.addEventListener('change', calcularEExibirHaverEDias);
-        }
-
+        const haverEl = document.getElementById('haverEstimado');
         const taxaJurosEl = document.getElementById('taxaJuros');
-        if (taxaJurosEl) taxaJurosEl.addEventListener('input', calcularEExibirHaverEDias);
+        const entradaEl = document.getElementById('entrada');
+        const retornoEl = document.getElementById('retorno');
+
+        // Formatação de Moeda
+        if (valorEl) valorEl.addEventListener('input', formatarInputMoeda);
+        if (haverEl) haverEl.addEventListener('input', formatarInputMoeda);
+
+        // Disparo do cálculo bidirecional a cada alteração nos campos relevantes
+        [valorEl, haverEl, taxaJurosEl, entradaEl, retornoEl].forEach(el => {
+            if (el) el.addEventListener('input', calcularValoresBidirecionais);
+        });
 
 
         // 3. Listeners para o Modal de Exclusão
@@ -914,13 +854,11 @@
         if (confirmDeleteBtn) {
             confirmDeleteBtn.addEventListener('click', () => {
                 if (investmentToDeleteId) {
-                    // Confirma a exclusão e passa o ID
                     deletarInvestimento(investmentToDeleteId);
                 }
                 hideDeleteConfirmation();
             });
         }
-
 
         // 4. Listeners de Autenticação
         const authForm = document.getElementById('auth-form');
@@ -932,10 +870,7 @@
                 if (email && password) handleAuth(email, password);
             });
         }
-
-        const authSwitchBtn = document.getElementById('auth-switch-mode');
-        if (authSwitchBtn) authSwitchBtn.addEventListener('click', toggleAuthMode);
-
+       
         const logoutBtn = document.getElementById('logout-button');
         if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     };
