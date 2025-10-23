@@ -94,7 +94,7 @@
       <h1 class="text-2xl font-bold text-white">Gestão Financeira</h1>
     </div>
     <div class="p-6">
-      <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">Acesso (Login)</h2>
+      <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">Acesso</h2>
       <form id="auth-form" class="space-y-5">
         <div>
           <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
@@ -141,7 +141,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-xl h-fit">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800">Cadastrar Novo Investimento</h2>
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Cadastrar Investimento</h2>
                 <form id="investimentoForm" class="space-y-4">
 
                     <div>
@@ -171,7 +171,7 @@
                     </div>
 
                     <div>
-                        <label for="retorno" class="block text-sm font-medium text-gray-700 mb-1">Data de Resgate Programado</label>
+                        <label for="retorno" class="block text-sm font-medium text-gray-700 mb-1">Data de Resgate</label>
                         <input type="date" id="retorno" class="input-field" required>
                     </div>
 
@@ -187,7 +187,7 @@
 
             <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white p-6 rounded-xl shadow-xl">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Resumo da Carteira (Global)</h2>
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Resumo da Carteira</h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div class="bg-[var(--primary)] text-white p-4 rounded-lg shadow-inner">
@@ -195,19 +195,18 @@
                             <p id="totalInvestidoDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
                         </div>
                         <div class="bg-[var(--success)] text-white p-4 rounded-lg shadow-inner">
-                            <p class="text-sm opacity-90">Total a Resgatar (Haver Estimado):</p>
+                            <p class="text-sm opacity-90">Total a Resgatar:</p>
                             <p id="totalHaverDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
                         </div>
                     </div>
                     
-                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Distribuição da Carteira (Gráfico)</h3>
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Gráfico</h3>
                     <div class="relative max-w-md mx-auto h-72">
                         <canvas id="investimentoChart"></canvas>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-xl">
-                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Carteira Compartilhada</h2>
                     <div id="investimento-list" class="space-y-4">
                         <p class="text-gray-500 text-center py-4" id="loading-message">Carregando investimentos...</p>
                         </div>
@@ -222,7 +221,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script type="module">
-    // Variáveis globais de ambiente (Assumindo que são fornecidas pelo ambiente)
     const SUPABASE_URL = typeof __supabase_url !== 'undefined' ? __supabase_url : 'https://odaalhsghdmpyhgnblml.supabase.co';
     const SUPABASE_ANON_KEY = typeof __supabase_anon_key !== 'undefined' ? __supabase_anon_key : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYWFsaHNnaGRtcHloZ25ibG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzMyODUsImV4cCI6MjA3NjU0OTI4NX0.J3bgvqGOh2KsNPhuQbnAcGsmNnsqxktIygOpJqr1cHM';
 
@@ -306,7 +304,6 @@
         return valor * Math.pow(1 + taxaDecimal, meses);
     }
 
-    // --- ADICIONADO: Cálculo inverso ---
     // Calcular valor investido a partir do Haver (resgate)
     function calcularValorInvestido(haver, taxaMensal, diasTotais) {
         if (diasTotais <= 0 || haver <= 0 || taxaMensal <= 0) return 0;
@@ -314,8 +311,7 @@
         const taxaDecimal = taxaMensal / 100;
         return haver / Math.pow(1 + taxaDecimal, meses);
     }
-    // --- FIM ADICIONADO ---
-    
+   
     // --- ADICIONADO: Função para cálculo bidirecional ---
     function calcularValoresBidirecionais() {
         const valorEl = document.getElementById('valor');
@@ -366,9 +362,8 @@
             }
         }
     }
-    // --- FIM ADICIONADO ---
     
-    // --- ADICIONADO: Funções de Logout por Inatividade ---
+    // Funções de Logout por Inatividade
     function resetInactivityTimer() {
         if (!currentUserId) return;
         clearTimeout(inactivityTimer);
@@ -388,8 +383,6 @@
             document.addEventListener(event, resetInactivityTimer, false);
         });
     }
-    // --- FIM ADICIONADO ---
-
 
     // --- SUPABASE / AUTH ---
 
@@ -447,7 +440,6 @@
         }
     }
 
-    // --- MODIFICADO: Apenas login, sem cadastro ---
     async function handleAuth(email, password) {
        if (!supabaseClient) return;
         const submitButton = document.getElementById('login-button');
@@ -457,13 +449,11 @@
         submitButton.textContent = 'Entrando...';
 
         try {
-            // Tenta apenas o login
             const result = await supabaseClient.auth.signInWithPassword({ email, password });
             if (result.error) throw result.error;
             showFeedback('Login realizado com sucesso!');
         } catch (error) {
             console.error("Erro de autenticação Supabase:", error);
-            // Mensagem clara sobre a ausência de cadastro
             let errorMessage = "Credenciais inválidas. Não é permitido criar novas contas.";
             showFeedback(errorMessage, 'error');
         } finally {
@@ -471,9 +461,8 @@
             submitButton.textContent = 'Entrar';
         }
     }
-    // --- FIM MODIFICADO ---
     
-    // --- MODIFICADO: Adicionado limpeza do timer de inatividade ---
+    // Adicionado limpeza do timer de inatividade ---
     async function handleLogout() {
         if (!supabaseClient) return;
 
@@ -482,13 +471,11 @@
             if (error) throw error;
             showFeedback('Você saiu da conta.', 'info');
             clearTimeout(inactivityTimer); 
-            // O onAuthStateChange cuidará da transição de UI
         } catch (error) {
             console.error("Erro ao fazer logout:", error);
             showFeedback('Erro ao fazer logout.', 'error');
         }
     }
-    // --- FIM MODIFICADO ---
 
     // --- DATA / SUPABASE POSTGRES ---
 
@@ -541,9 +528,8 @@
         const form = e.target;
         const nomeTipo = form.nomeTipo.value;
         const taxaJuros = parseFloat(form.taxaJuros.value);
-        // Usa o haverEstimado, pois este é o valor que o usuário pode ter inserido ou que foi calculado
         const haverNumerico = parseMoedaParaNumero(form.haverEstimado.value);
-        const valorNumerico = parseMoedaParaNumero(form.valor.value); // O valor Investido final
+        const valorNumerico = parseMoedaParaNumero(form.valor.value);
         const dataInicio = form.entrada.value;
         const dataResgate = form.retorno.value;
 
@@ -574,7 +560,6 @@
 
             showFeedback('Investimento adicionado com sucesso!');
             form.reset();
-            // Resetar displays de cálculo após envio
             document.getElementById('diasTotaisDisplay').textContent = '0 Dias';
 
         } catch (error) {
@@ -814,12 +799,9 @@
             });
         }
     }
-
-
     // --- Inicialização e Listeners ---
 
     window.onload = function () {
-        // Inicializa Supabase e Autenticação
         initializeSupabase(); 
         
         // ADICIONADO: Configura os listeners de atividade para o logout por inatividade
@@ -844,8 +826,6 @@
         [valorEl, haverEl, taxaJurosEl, entradaEl, retornoEl].forEach(el => {
             if (el) el.addEventListener('input', calcularValoresBidirecionais);
         });
-
-
         // 3. Listeners para o Modal de Exclusão
         const cancelDeleteBtn = document.getElementById('cancel-delete');
         if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
@@ -859,7 +839,6 @@
                 hideDeleteConfirmation();
             });
         }
-
         // 4. Listeners de Autenticação
         const authForm = document.getElementById('auth-form');
         if (authForm) {
