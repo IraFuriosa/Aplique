@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <script>
+    // Configuração do Tailwind para o modo escuro
+    tailwind.config = { darkMode: 'class' }
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,10 +17,24 @@
       --primary-dark: #4338ca;
       --success: #10b981;
       --error: #ef4444;
-      --background-light: #f9fafb;
+      --background: #f3f4f6; /* Fundo claro (um pouco mais escuro) */
       --card-bg: #ffffff;
+      --text-color: #111827; /* Texto principal (mais escuro) */
+      --text-muted: #4b5563; /* Texto secundário (mais escuro) */
+      --border-color: #d1d5db; /* Bordas mais visíveis */
     }
 
+    html.dark {
+      --primary: #818cf8; /* Azul mais claro para dark mode */
+      --primary-dark: #6366f1;
+      --success: #34d399;
+      --error: #f87171;
+      --background: #111827;
+      --card-bg: #1f2937;
+      --text-color: #f9fafb; /* Texto principal (mais claro) */
+      --text-muted: #a1a1aa; /* Texto secundário (mais claro para contraste) */
+      --border-color: #4b5563; /* Bordas mais visíveis no modo escuro */
+    }
     /* Estilo global aprimorado */
     body {
       font-family: 'Inter', sans-serif;
@@ -24,43 +42,36 @@
       color: #1f2937;
       min-height: 10vh;
       display: flex;
+      color: var(--text-color); /* Usa a variável de cor de texto */
       flex-direction: column;
-    }
-
-    /* Estilos personalizados para botões usando @apply do Tailwind */
-    .btn {
-    @apply font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm;
-    }
-
-    .btn:disabled {
-      @apply opacity-50 cursor-not-allowed;
-    }
-
-    .btn-primary {
-      @apply bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)] focus:ring-offset-2;
-    }
-
-    .btn-secondary {
-      @apply bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2;
-    }
-
-    .btn-delete {
-      /* Ajuste para alinhar o ícone e o texto */
-      @apply bg-[var(--error)] text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-[var(--error)] focus:ring-offset-2;
-    }
-
-    .btn-success {
-      @apply bg-[var(--success)] text-white hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-[var(--success)] focus:ring-offset-2;
     }
 
     /* Ajuste para o formulário */
     .input-field {
-     @apply p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] w-full box-border;
+     @apply p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] w-full box-border bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100;
     }
 
     /* Estilo para a mensagem de feedback/toast */
     #feedback-message {
         transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        /* Adiciona um pouco de estilo para o modo escuro */
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+    #feedback-message.success {
+        background-color: var(--success);
+        color: white;
+    }
+    #feedback-message.error {
+        background-color: var(--error);
+        color: white;
+    }
+    #feedback-message.info {
+        background-color: var(--primary);
+        color: white;
+    }
         z-index: 1000;
         transform: translateY(100%);
     }
@@ -69,27 +80,32 @@
         transform: translateY(0);
         opacity: 1;
     }
+
+    /* Estilo para a barra de rolagem */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: var(--background);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--text-muted);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+    }
   </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 
   <div id="feedback-message" class="fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 translate-y-full max-w-sm">
     <p id="feedback-text" class="font-medium"></p>
   </div>
 
-    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Confirmar Exclusão</h2>
-            <p class="mb-6 text-gray-600">Tem certeza que deseja excluir este investimento? Esta ação é irreversível e o investimento será removido de **todos** os usuários, pois a carteira é compartilhada.</p>
-            <div class="flex justify-end space-x-3">
-                <button id="cancel-delete" class="btn btn-secondary">Cancelar</button>
-                <button id="confirm-delete" class="btn btn-delete">Excluir</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="auth-container" class="flex items-center justify-center min-h-screen p-4">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <div id="auth-container" class="flex items-center justify-center min-h-screen p-4" style="background-color: var(--background);">
+  <div class="w-full max-w-md rounded-2xl shadow-xl overflow-hidden border" style="background-color: var(--card-bg); border-color: var(--border-color);">
     <div class="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] p-6 text-center">
       <h1 class="text-2xl font-bold text-white">Gestão Financeira</h1>
     </div>
@@ -97,7 +113,7 @@
       <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">Acesso</h2>
       <form id="auth-form" class="space-y-5">
         <div>
-          <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+          <label for="auth-email" class="block text-sm font-medium mb-1.5" style="color: var(--text-muted);">Email</label>
           <input
             type="email"
             id="auth-email"
@@ -108,7 +124,7 @@
         </div>
         <div>
           <div class="flex justify-between items-center mb-1.5">
-            <label for="auth-password" class="block text-sm font-medium text-gray-700">Senha</label>
+            <label for="auth-password" class="block text-sm font-medium" style="color: var(--text-muted);">Senha</label>
           </div>
           <input
             type="password"
@@ -118,10 +134,10 @@
             required
           />
         </div>
-        <button type="submit" id="login-button" class="btn btn-primary w-full py-3 text-base">
+        <button type="submit" id="login-button" class="w-full py-3 text-base font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)] focus:ring-offset-2">
           Entrar
         </button>
-        <p class="text-center text-sm text-gray-500 pt-2">
+        <p class="text-center text-sm pt-2" style="color: var(--text-muted);">
             Não é permitido criar novas contas. Apenas acesso a usuários existentes.
         </p>
       </form>
@@ -129,65 +145,65 @@
   </div>
 </div>
 
-    <div id="app-container" class="hidden">
-        <div class="flex justify-between items-center mb-6 p-4 bg-white rounded-xl shadow-lg">
+    <div id="app-container" class="hidden p-4 md:p-8" style="background-color: var(--background);">
+        <header class="flex justify-between items-center mb-6 p-4 rounded-xl shadow-lg border" style="background-color: var(--card-bg); border-color: var(--border-color);">
             <div class="flex flex-col sm:flex-row sm:items-center">
-                <p class="text-sm text-gray-500 mr-4">Logado como:</p>
-                <p id="user-email-display" class="font-medium text-gray-800 break-all"></p>
-                <p id="user-id-display" class="text-xs text-gray-400 mt-1 sm:mt-0 sm:ml-4"></p>
+                <p class="text-sm mr-4" style="color: var(--text-muted);">Logado como:</p>
+                <p id="user-email-display" class="font-medium break-all" style="color: var(--text-color);"></p>
+                <p id="user-id-display" class="text-xs mt-1 sm:mt-0 sm:ml-4" style="color: var(--text-muted);"></p>
             </div>
-            <button id="logout-button" class="btn btn-secondary ml-4">Sair</button>
-        </div>
+            <button id="logout-button" class="ml-4 font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2">Sair</button>
+        </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-xl h-fit">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800">Cadastrar Investimento</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto w-full">
+            <div class="lg:col-span-1 p-6 rounded-xl shadow-xl h-fit border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6" style="color: var(--text-color);">Cadastrar Novo Investimento</h2>
                 <form id="investimentoForm" class="space-y-4">
 
                     <div>
-                        <label for="nomeTipo" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                        <label for="nomeTipo" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Nome</label>
                         <select id="nomeTipo" class="input-field" required>
                             <option value="" disabled selected>Carregando...</option>
                         </select>
                     </div>
 
                     <div>
-                        <label for="taxaJuros" class="block text-sm font-medium text-gray-700 mb-1">Taxa de Juros Mensal (%)</label>
+                        <label for="taxaJuros" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Taxa de Juros Mensal (%)</label>
                         <input type="number" id="taxaJuros" class="input-field" placeholder="Ex: 10" step="0.01" min="0" required>
                     </div>
 
                   <div>
-                     <label for="valor" class="block text-sm font-medium text-gray-700 mb-1">Valor Investido (R$)</label>
+                     <label for="valor" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Valor Investido (R$)</label>
                      <input type="text" id="valor" class="input-field" placeholder="R$ 1.000,00" required>
                  </div>
                  <div>
-                    <label for="haverEstimado" class="block text-sm font-medium text-gray-700 mb-1">Valor de Resgate (R$)</label>
+                    <label for="haverEstimado" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Valor de Resgate (R$)</label>
                      <input type="text" id="haverEstimado" class="input-field" placeholder="R$ 1.200,00" required>
                 </div>
 
                     <div>
-                        <label for="entrada" class="block text-sm font-medium text-gray-700 mb-1">Data de Início</label>
+                        <label for="entrada" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data de Início</label>
                         <input type="date" id="entrada" class="input-field" required>
                     </div>
 
                     <div>
-                        <label for="retorno" class="block text-sm font-medium text-gray-700 mb-1">Data de Resgate</label>
+                        <label for="retorno" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data de Resgate Programado</label>
                         <input type="date" id="retorno" class="input-field" required>
                     </div>
 
-                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
+                    <div class="p-3 rounded-lg border space-y-2" style="background-color: var(--background); border-color: var(--border-color);">
                         <div>
-                            <p class="text-sm font-medium text-gray-700">Prazo Total em Dias:</p>
+                            <p class="text-sm font-medium" style="color: var(--text-muted);">Prazo Total em Dias:</p>
                             <p id="diasTotaisDisplay" class="font-bold text-lg text-[var(--primary)]">0 Dias</p>
                         </div>
              </div>                    
-               <button type="submit" class="btn btn-primary w-full">Adicionar Investimento</button>
+               <button type="submit" class="w-full font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)] focus:ring-offset-2">Adicionar Investimento</button>
                 </form>
             </div>
 
             <div class="lg:col-span-2 space-y-8">
-                <div class="bg-white p-6 rounded-xl shadow-xl">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Resumo da Carteira</h2>
+                <div class="p-6 rounded-xl shadow-xl border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                    <h2 class="text-2xl font-bold mb-4" style="color: var(--text-color);">Resumo da Carteira (Global)</h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div class="bg-[var(--primary)] text-white p-4 rounded-lg shadow-inner">
@@ -195,22 +211,34 @@
                             <p id="totalInvestidoDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
                         </div>
                         <div class="bg-[var(--success)] text-white p-4 rounded-lg shadow-inner">
-                            <p class="text-sm opacity-90">Total a Resgatar:</p>
+                            <p class="text-sm opacity-90">Total a Resgatar (Haver Estimado):</p>
                             <p id="totalHaverDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
                         </div>
                     </div>
                     
-                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Gráfico</h3>
+                    <h3 class="text-xl font-semibold mb-4" style="color: var(--text-color);">Distribuição da Carteira (Gráfico)</h3>
                     <div class="relative max-w-md mx-auto h-72">
                         <canvas id="investimentoChart"></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-xl">
+                <div class="p-6 rounded-xl shadow-xl border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                    <h2 class="text-2xl font-bold mb-6" style="color: var(--text-color);">Carteira Compartilhada</h2>
                     <div id="investimento-list" class="space-y-4">
-                        <p class="text-gray-500 text-center py-4" id="loading-message">Carregando investimentos...</p>
+                        <p class="text-center py-4" id="loading-message" style="color: var(--text-muted);">Carregando investimentos...</p>
                         </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="rounded-xl shadow-2xl p-6 w-full max-w-sm border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+            <h2 class="text-xl font-bold mb-4 text-[var(--error)]">Confirmar Exclusão</h2>
+            <p class="mb-6" style="color: var(--text-muted);">Tem certeza que deseja excluir este investimento? Esta ação é irreversível e o investimento será removido de **todos** os usuários, pois a carteira é compartilhada.</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-delete" class="font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2">Cancelar</button>
+                <button id="confirm-delete" class="font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--error)] text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-[var(--error)] focus:ring-offset-2">Excluir</button>
             </div>
         </div>
     </div>
@@ -221,6 +249,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script type="module">
+    // Variáveis globais de ambiente (Assumindo que são fornecidas pelo ambiente)
     const SUPABASE_URL = typeof __supabase_url !== 'undefined' ? __supabase_url : 'https://odaalhsghdmpyhgnblml.supabase.co';
     const SUPABASE_ANON_KEY = typeof __supabase_anon_key !== 'undefined' ? __supabase_anon_key : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYWFsaHNnaGRtcHloZ25ibG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzMyODUsImV4cCI6MjA3NjU0OTI4NX0.J3bgvqGOh2KsNPhuQbnAcGsmNnsqxktIygOpJqr1cHM';
 
@@ -256,8 +285,9 @@
         const feedbackEl = document.getElementById('feedback-message');
         const textEl = document.getElementById('feedback-text');
 
-        if (!feedbackEl || !textEl) return; 
+        if (!feedbackEl || !textEl) return;
 
+        // Usa as classes CSS definidas no <style> para o feedback
         const classes = {
             'success': 'bg-[var(--success)] text-white',
             'error': 'bg-[var(--error)] text-white',
@@ -304,6 +334,7 @@
         return valor * Math.pow(1 + taxaDecimal, meses);
     }
 
+    // --- ADICIONADO: Cálculo inverso ---
     // Calcular valor investido a partir do Haver (resgate)
     function calcularValorInvestido(haver, taxaMensal, diasTotais) {
         if (diasTotais <= 0 || haver <= 0 || taxaMensal <= 0) return 0;
@@ -311,7 +342,8 @@
         const taxaDecimal = taxaMensal / 100;
         return haver / Math.pow(1 + taxaDecimal, meses);
     }
-   
+    // --- FIM ADICIONADO ---
+    
     // --- ADICIONADO: Função para cálculo bidirecional ---
     function calcularValoresBidirecionais() {
         const valorEl = document.getElementById('valor');
@@ -362,8 +394,9 @@
             }
         }
     }
+    // --- FIM ADICIONADO ---
     
-    // Funções de Logout por Inatividade
+    // --- ADICIONADO: Funções de Logout por Inatividade ---
     function resetInactivityTimer() {
         if (!currentUserId) return;
         clearTimeout(inactivityTimer);
@@ -383,6 +416,8 @@
             document.addEventListener(event, resetInactivityTimer, false);
         });
     }
+    // --- FIM ADICIONADO ---
+
 
     // --- SUPABASE / AUTH ---
 
@@ -440,6 +475,7 @@
         }
     }
 
+    // --- MODIFICADO: Apenas login, sem cadastro ---
     async function handleAuth(email, password) {
        if (!supabaseClient) return;
         const submitButton = document.getElementById('login-button');
@@ -449,11 +485,13 @@
         submitButton.textContent = 'Entrando...';
 
         try {
+            // Tenta apenas o login
             const result = await supabaseClient.auth.signInWithPassword({ email, password });
             if (result.error) throw result.error;
             showFeedback('Login realizado com sucesso!');
         } catch (error) {
             console.error("Erro de autenticação Supabase:", error);
+            // Mensagem clara sobre a ausência de cadastro
             let errorMessage = "Credenciais inválidas. Não é permitido criar novas contas.";
             showFeedback(errorMessage, 'error');
         } finally {
@@ -461,8 +499,9 @@
             submitButton.textContent = 'Entrar';
         }
     }
+    // --- FIM MODIFICADO ---
     
-    // Adicionado limpeza do timer de inatividade ---
+    // --- MODIFICADO: Adicionado limpeza do timer de inatividade ---
     async function handleLogout() {
         if (!supabaseClient) return;
 
@@ -471,11 +510,13 @@
             if (error) throw error;
             showFeedback('Você saiu da conta.', 'info');
             clearTimeout(inactivityTimer); 
+            // O onAuthStateChange cuidará da transição de UI
         } catch (error) {
             console.error("Erro ao fazer logout:", error);
             showFeedback('Erro ao fazer logout.', 'error');
         }
     }
+    // --- FIM MODIFICADO ---
 
     // --- DATA / SUPABASE POSTGRES ---
 
@@ -528,8 +569,9 @@
         const form = e.target;
         const nomeTipo = form.nomeTipo.value;
         const taxaJuros = parseFloat(form.taxaJuros.value);
+        // Usa o haverEstimado, pois este é o valor que o usuário pode ter inserido ou que foi calculado
         const haverNumerico = parseMoedaParaNumero(form.haverEstimado.value);
-        const valorNumerico = parseMoedaParaNumero(form.valor.value);
+        const valorNumerico = parseMoedaParaNumero(form.valor.value); // O valor Investido final
         const dataInicio = form.entrada.value;
         const dataResgate = form.retorno.value;
 
@@ -560,6 +602,7 @@
 
             showFeedback('Investimento adicionado com sucesso!');
             form.reset();
+            // Resetar displays de cálculo após envio
             document.getElementById('diasTotaisDisplay').textContent = '0 Dias';
 
         } catch (error) {
@@ -615,7 +658,7 @@
         if (loadingMessage) loadingMessage.textContent = 'Carregando investimentos...';
 
         realtimeChannel = supabaseClient
-            .channel('investimento_changes')
+            .channel('investimento_changes_public') // Nome do canal mais específico
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: TABLE_INVESTIMENTOS }, 
@@ -703,27 +746,29 @@
             }
 
             const card = document.createElement('div');
-            card.className = 'bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow';
+            card.className = 'p-4 rounded-xl shadow-sm border hover:shadow-md transition-shadow';
+            card.style.backgroundColor = 'var(--background)';
+            card.style.borderColor = 'var(--border-color)';
             card.innerHTML = `
                 <div class="flex justify-between items-start">
-                    <h4 class="text-lg font-bold text-gray-800">${inv.nome}</h4>
+                    <h4 class="text-lg font-bold" style="color: var(--text-color);">${inv.nome}</h4>
                     <span class="text-xs font-semibold px-3 py-1 rounded-full ${statusClass}">${statusText}</span>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
-                    <p><span class="font-medium">Investido:</span> <span class="text-[var(--primary)] font-semibold">${formatarMoeda(inv.valor)}</span></p>
-                    <p><span class="font-medium">Resgate Est.:</span> <span class="text-[var(--success)] font-semibold">${formatarMoeda(inv.haver)}</span></p>
-                    <p><span class="font-medium">Início:</span> ${inv.entrada}</p>
-                    <p><span class="font-medium">Resgate:</span> ${inv.retorno}</p>
+                    <p style="color: var(--text-muted);"><span class="font-medium" style="color: var(--text-color);">Investido:</span> <span class="text-[var(--primary)] font-semibold">${formatarMoeda(inv.valor)}</span></p>
+                    <p style="color: var(--text-muted);"><span class="font-medium" style="color: var(--text-color);">Resgate Est.:</span> <span class="text-[var(--success)] font-semibold">${formatarMoeda(inv.haver)}</span></p>
+                    <p style="color: var(--text-muted);"><span class="font-medium" style="color: var(--text-color);">Início:</span> ${inv.entrada}</p>
+                    <p style="color: var(--text-muted);"><span class="font-medium" style="color: var(--text-color);">Resgate:</span> ${inv.retorno}</p>
                 </div>
-                <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-                    <button data-id="${inv.id}" class="btn-delete text-sm py-1 px-3 flex items-center space-x-1">
+                <div class="mt-4 pt-3 border-t flex justify-end" style="border-color: var(--border-color);">
+                    <button data-id="${inv.id}" class="delete-button text-sm py-1 px-3 flex items-center space-x-1 font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--error)] text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-[var(--error)] focus:ring-offset-2">
                         <i class="fas fa-trash-alt"></i>
                         <span>Excluir</span>
                     </button>
                 </div>
             `;
             
-            const deleteBtn = card.querySelector('.btn-delete');
+            const deleteBtn = card.querySelector('.delete-button');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
@@ -799,9 +844,12 @@
             });
         }
     }
+
+
     // --- Inicialização e Listeners ---
 
     window.onload = function () {
+        // Inicializa Supabase e Autenticação
         initializeSupabase(); 
         
         // ADICIONADO: Configura os listeners de atividade para o logout por inatividade
@@ -826,6 +874,8 @@
         [valorEl, haverEl, taxaJurosEl, entradaEl, retornoEl].forEach(el => {
             if (el) el.addEventListener('input', calcularValoresBidirecionais);
         });
+
+
         // 3. Listeners para o Modal de Exclusão
         const cancelDeleteBtn = document.getElementById('cancel-delete');
         if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
@@ -839,6 +889,7 @@
                 hideDeleteConfirmation();
             });
         }
+
         // 4. Listeners de Autenticação
         const authForm = document.getElementById('auth-form');
         if (authForm) {
