@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Investimentos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="color-scheme" content="light dark">
+  <script>
+    // Configuração do Tailwind para o modo escuro
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <script>
+    // Aplica o tema imediatamente ao carregar a página para evitar FOUC (Flash of Unstyled Content)
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <div id="feedback-message" class="fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 translate-y-full max-w-sm">
+    <p id="feedback-text" class="font-medium"></p>
+  </div>
+
+  <div id="auth-container" class="flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md rounded-2xl shadow-xl overflow-hidden border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+      <div class="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] p-6 text-center">
+        <h1 class="text-2xl font-bold text-white">Gestão Financeira</h1>
+      </div>
+      <div class="p-6">
+        <h2 class="text-xl font-bold mb-5 text-center">Acesso</h2>
+        <form id="auth-form" class="space-y-5">
+          <div>
+            <label for="auth-email" class="block text-sm font-medium mb-1.5" style="color: var(--text-muted);">Email</label>
+            <input type="email" id="auth-email" class="input-field w-full" placeholder="seu.email@exemplo.com" required />
+          </div>
+          <div>
+            <label for="auth-password" class="block text-sm font-medium" style="color: var(--text-muted);">Senha</label>
+            <input type="password" id="auth-password" class="input-field w-full" placeholder="••••••••" required />
+          </div>
+          <button type="submit" id="login-button" class="w-full py-3 text-base font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)] focus:ring-offset-2">Entrar</button>
+          <p class="text-center text-sm pt-2" style="color: var(--text-muted);">Não é permitido criar novas contas. Apenas acesso a usuários existentes.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-container" class="hidden p-4 md:p-8">
+    <header class="flex justify-between items-center mb-6 p-4 rounded-xl shadow-lg border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+      <div class="flex flex-col sm:flex-row sm:items-center">
+        <p class="text-sm mr-4" style="color: var(--text-muted);">Logado como:</p>
+        <p id="user-email-display" class="font-medium break-all"></p>
+        <p id="user-id-display" class="text-xs mt-1 sm:mt-0 sm:ml-4" style="color: var(--text-muted);"></p>
+      </div>
+      <div class="flex items-center">
+        <button id="theme-toggle" title="Alternar tema" class="mr-2 p-2.5 rounded-lg transition-colors duration-150 ease-in-out text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-gray-500/10 focus:outline-none focus:ring-2 focus:ring-gray-400">
+            <i class="fas fa-moon text-lg"></i>
+        </button>
+        <button id="logout-button" class="font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 dark:focus:ring-gray-500">Sair</button>
+      </div>
+    </header>
+
+    <div class="space-y-8 max-w-7xl mx-auto w-full">
+        <div class="p-6 rounded-xl shadow-xl border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+            <h2 class="text-2xl font-bold mb-4">Resumo da Carteira (Global)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-[var(--primary)] text-white p-4 rounded-lg shadow-inner">
+                    <p class="text-sm opacity-90">Total Investido:</p>
+                    <p id="totalInvestidoDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
+                </div>
+                <div class="bg-[var(--success)] text-white p-4 rounded-lg shadow-inner">
+                    <p class="text-sm opacity-90">Total a Resgatar (Haver Estimado):</p>
+                    <p id="totalHaverDisplay" class="text-2xl font-extrabold">R$ 0,00</p>
+                </div>
+            </div>
+            <h3 class="text-xl font-semibold mb-4">Distribuição da Carteira (Gráfico)</h3>
+            <div class="relative max-w-md mx-auto h-72">
+                <canvas id="investimentoChart"></canvas>
+            </div>
+        </div>
+        <div class="p-6 rounded-xl shadow-xl border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+            <h2 class="text-2xl font-bold mb-6">Carteira Compartilhada</h2>
+            <div id="investimento-list" class="space-y-4">
+                <p class="text-center py-4" id="loading-message" style="color: var(--text-muted);">Carregando investimentos...</p>
+            </div>
+        </div>
+      </div>
+    <button id="open-investimento-modal" class="fixed bottom-8 right-8 bg-[var(--primary)] text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl font-light hover:bg-[var(--primary-dark)] transition-colors z-40">
+    +
+  </button>
+  </div>
+  <div id="delete-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm hidden items-center justify-center p-4">
+      <div class="rounded-xl shadow-2xl p-6 w-full max-w-sm border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+          <h2 class="text-xl font-bold mb-4 text-[var(--error)]">Confirmar Exclusão</h2>
+          <p class="mb-6" style="color: var(--text-muted);">Tem certeza que deseja excluir este investimento? Esta ação é irreversível e o investimento será removido de **todos** os usuários, pois a carteira é compartilhada.</p>
+          <div class="flex justify-end space-x-3">
+              <button id="cancel-delete" class="font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2">Cancelar</button>
+              <button id="confirm-delete" class="font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--error)] text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-[var(--error)] focus:ring-offset-2">Excluir</button>
+          </div>
+      </div>
+  </div>
+
+  <div id="investimento-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="p-6 rounded-xl shadow-xl h-fit border w-full max-w-lg bg-[var(--card-bg)]" style="border-color: var(--border-color);">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Cadastrar Novo Investimento</h2>
+            <button id="close-investimento-modal" class="text-3xl leading-none font-bold text-[var(--text-muted)] hover:text-[var(--error)]">&times;</button>
+        </div>
+        <form id="investimentoForm" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+          <div>
+            <label for="nomeTipo" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Nome</label>
+            <select id="nomeTipo" class="input-field" required>
+              <option value="" disabled selected>Carregando...</option>
+            </select>
+          </div>
+          <div>
+            <label for="taxaJuros" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Taxa de Juros Mensal (%)</label>
+            <input type="number" id="taxaJuros" class="input-field" placeholder="Ex: 10" step="any" min="0" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2" style="color: var(--text-muted);">Modelo de Retorno</label>
+            <div class="flex items-center space-x-4 p-2 rounded-lg border" style="border-color: var(--border-color);">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="radio" name="returnType" value="single" class="form-radio text-[var(--primary)] focus:ring-[var(--primary)]" checked>
+                <span class="text-sm font-medium">Parcela Única</span>
+              </label>
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="radio" name="returnType" value="multi" class="form-radio text-[var(--primary)] focus:ring-[var(--primary)]">
+                <span class="text-sm font-medium">Múltiplas Parcelas</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label for="valor" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Valor Investido (R$)</label>
+            <input type="text" id="valor" class="input-field" placeholder="R$ 1.000,00">
+          </div>
+          <div>
+            <label for="haverEstimado" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Valor Total de Resgate (R$)</label>
+            <input type="text" id="haverEstimado" class="input-field" placeholder="R$ 1.200,00">
+          </div>
+          <div>
+            <label for="entrada" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data de Início</label>
+            <input type="date" id="entrada" class="input-field" required>
+          </div>
+          <div id="single-installment-fields">
+            <div>
+              <label for="retorno" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data de Resgate Programado</label>
+              <input type="date" id="retorno" class="input-field" required>
+            </div>
+          </div>
+          <div id="multi-installment-fields" class="hidden space-y-4">
+            <div>
+              <label for="primeiraParcela" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data da Primeira Parcela</label>
+              <input type="date" id="primeiraParcela" class="input-field">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="numeroParcelas" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Nº de Parcelas</label>
+                <input type="number" id="numeroParcelas" class="input-field" value="2" min="2">
+              </div>
+              <div>
+                <label for="intervaloParcelas" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Intervalo (dias)</label>
+                <input type="number" id="intervaloParcelas" class="input-field" value="30">
+              </div>
+            </div>
+          </div>
+          <div id="prazo-resumo-container" class="p-3 rounded-lg border space-y-2" style="background-color: var(--background); border-color: var(--border-color);">
+            <div>
+              <p class="text-sm font-medium" style="color: var(--text-muted);">Prazo Total em Dias:</p>
+              <p id="diasTotaisDisplay" class="font-bold text-lg text-[var(--primary)]">0 Dias</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <button type="button" id="limpar-form-button" class="w-full font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2">Limpar</button>
+            <button type="submit" class="w-full font-semibold py-2.5 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)] focus:ring-offset-2">Adicionar Investimento</button>
+          </div>
+        </form>
+    </div>
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --success: #10b981;
+      --error: #ef4444;
+      --background: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-color: #111827;
+      --text-muted: #4b5563;
+      --border-color: #d1d5db;
+    }
+    html.dark {
+      --primary: #818cf8;
+      --primary-dark: #6366f1;
+      --success: #34d399;
+      --error: #f87171;
+      --background: #111827;
+      --card-bg: #1f2937;
+      --text-color: #f9fafb;
+      --text-muted: #a1a1aa;
+      --border-color: #4b5563;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+    }
+    .input-field {
+     @apply p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] w-full box-border bg-transparent;
+    }
+    #feedback-message {
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        z-index: 1000;
+        transform: translateY(100%);
+    }
+    #feedback-message.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: var(--background);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--text-muted);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+    }
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 24px;
+        cursor: pointer;
+    }
+    .toggle-switch-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--text-muted);
+        border-radius: 24px;
+        transition: background-color 0.2s;
+    }
+    .toggle-switch-handle {
+        position: absolute;
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: var(--card-bg);
+        border-radius: 50%;
+        transition: transform 0.2s;
+    }
+    .toggle-switch.checked .toggle-switch-background {
+        background-color: var(--primary);
+    }
+    .toggle-switch.checked .toggle-switch-handle {
+        transform: translateX(16px);
+    }

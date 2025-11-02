@@ -1,0 +1,2 @@
+const __supabase_url = "https://odaalhsghdmpyhgnblml.supabase.co";
+const __supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYWFsaHNnaGRtcHloZ25ibG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzMyODUsImV4cCI6MjA3NjU0OTI4NX0.J3bgvqGOh2KsNPhuQbnAcGsmNnsqxktIygOpJqr1cHM";
