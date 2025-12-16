@@ -24,6 +24,85 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
+  <template id="single-investment-card-template">
+    <div class="investment-card p-4 rounded-xl shadow-sm border hover:shadow-md transition-shadow" style="background-color: var(--background); border-color: var(--border-color);">
+      <div class="flex justify-between items-start">
+        <h4 class="text-lg font-bold" data-template="nome"></h4>
+        <span class="text-xs font-semibold px-3 py-1 rounded-full" data-template="status"></span>
+      </div>
+      <p class="text-xs" style="color: var(--text-muted); margin-bottom: 0.5rem;" data-template="user_email"></p>
+      <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+        <p><span class="font-medium">Investido:</span> <span class="text-[var(--primary)] font-semibold" data-template="valor"></span></p>
+        <p><span class="font-medium">Resgate Est.:</span> <span class="text-[var(--success)] font-semibold" data-template="haver"></span></p>
+        <p><span class="font-medium">Início:</span> <span data-template="entrada"></span></p>
+        <p><span class="font-medium">Resgate:</span> <span data-template="retorno"></span></p>
+      </div>
+      <div class="mt-4 pt-3 border-t flex justify-end space-x-2" style="border-color: var(--border-color);" data-template="actions">
+        <button class="resgatado-button text-sm py-1.5 px-3 flex items-center space-x-2 font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300">
+            <i class="fas fa-check-circle"></i>
+            <span>Resgatado</span>
+        </button>
+        <button class="postpone-button text-sm py-1.5 px-3 flex items-center space-x-2 font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-yellow-500 text-white hover:bg-yellow-600 focus:outline-none focus:ring-4 focus:ring-yellow-300">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Postergado</span>
+        </button>
+        <button class="delete-button text-sm py-1.5 px-3 flex items-center space-x-1 font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--error)] text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-[var(--error)] focus:ring-offset-2">
+            <i class="fas fa-trash-alt"></i>
+            <span>Excluir</span>
+        </button>
+      </div>
+    </div>
+  </template>
+
+  <template id="multi-investment-card-template">
+    <div class="investment-card p-4 rounded-xl shadow-sm border hover:shadow-md transition-shadow" style="background-color: var(--background); border-color: var(--border-color);">
+      <div class="flex justify-between items-start">
+          <h4 class="text-lg font-bold" data-template="nome"></h4>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full" data-template="status"></span>
+      </div>
+      <p class="text-xs" style="color: var(--text-muted); margin-bottom: 0.5rem;" data-template="user_email"></p>
+      <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+          <p><span class="font-medium">Total Investido:</span> <span class="text-[var(--primary)] font-semibold" data-template="valor"></span></p>
+          <p><span class="font-medium">Total a Resgatar:</span> <span class="text-[var(--success)] font-semibold" data-template="haver"></span></p>
+      </div>
+      <div class="mt-4 pt-3 border-t" style="border-color: var(--border-color);">
+          <div class="flex justify-between items-center mb-2">
+               <h5 class="text-sm font-semibold" style="color: var(--text-muted);">Parcelas</h5>
+               <div class="flex items-center space-x-2" data-template="actions">
+                  <button class="resgatado-button text-xs py-1 px-2 flex items-center space-x-1 font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                      <i class="fas fa-check-circle"></i>
+                      <span>Resgatado</span>
+                  </button>
+                  <button class="postpone-button text-xs py-1 px-2 flex items-center space-x-1 font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-yellow-500 text-white hover:bg-yellow-600 focus:outline-none focus:ring-4 focus:ring-yellow-300">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span>Postergado</span>
+                  </button>
+                  <button class="delete-button text-xs py-1 px-2 flex items-center space-x-1 font-semibold rounded-lg transition duration-150 ease-in-out shadow-sm bg-[var(--error)] text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-[var(--error)] focus:ring-offset-2">
+                      <i class="fas fa-trash-alt"></i>
+                      <span>Excluir</span>
+                  </button>
+               </div>
+          </div>
+          <div class="space-y-2 mt-3" data-template="installments"></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="installment-row-template">
+    <div class="flex justify-between items-center p-2 rounded-lg" style="background-color: var(--card-bg);">
+      <div class="flex items-center space-x-3">
+          <div class="toggle-switch">
+              <div class="toggle-switch-background"></div>
+              <div class="toggle-switch-handle"></div>
+          </div>
+          <div>
+              <p class="font-semibold" data-template="text"></p>
+              <p class="text-xs" style="color: var(--text-muted);" data-template="date"></p>
+          </div>
+      </div>
+    </div>
+  </template>
+
   <div id="feedback-message" class="fixed bottom-4 right-4 p-4 rounded-lg shadow-xl opacity-0 translate-y-full max-w-sm">
     <p id="feedback-text" class="font-medium"></p>
   </div>
@@ -136,39 +215,30 @@
               </label>
             </div>
           </div>
-          <div>
-            <label for="valor" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Valor Investido (R$)</label>
-            <input type="text" id="valor" class="input-field" placeholder="R$ 1.000,00">
+          <div id="numero-parcelas-field" class="hidden">
+            <label for="numeroParcelas" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Nº de Parcelas</label>
+            <input type="number" id="numeroParcelas" class="input-field w-full" value="2" min="2">
           </div>
           <div>
             <label for="haverEstimado" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Valor Total de Resgate (R$)</label>
             <input type="text" id="haverEstimado" class="input-field" placeholder="R$ 1.200,00">
           </div>
-          <div>
-            <label for="entrada" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data de Início</label>
-            <input type="date" id="entrada" class="input-field" required>
-          </div>
-          <div id="single-installment-fields">
+          <input type="hidden" id="valor">
+          <div class="grid grid-cols-2 gap-4" id="datas-linhas">
             <div>
-              <label for="retorno" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data de Resgate Programado</label>
+              <label for="entrada" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data de Início</label>
+              <input type="date" id="entrada" class="input-field" required>
+            </div>
+            <div id="data-direita-field">
+              <label for="data-direita-label" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data de Resgate Programado</label>
               <input type="date" id="retorno" class="input-field" required>
             </div>
           </div>
           <div id="multi-installment-fields" class="hidden space-y-4">
-            <div>
-              <label for="primeiraParcela" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Data da Primeira Parcela</label>
-              <input type="date" id="primeiraParcela" class="input-field">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label for="numeroParcelas" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Nº de Parcelas</label>
-                <input type="number" id="numeroParcelas" class="input-field" value="2" min="2">
-              </div>
-              <div>
-                <label for="intervaloParcelas" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Intervalo (dias)</label>
-                <input type="number" id="intervaloParcelas" class="input-field" value="30">
-              </div>
-            </div>
+          <div>
+            <label for="intervaloParcelas" class="block text-sm font-medium mb-1" style="color: var(--text-muted);">Intervalo (dias)</label>
+            <input type="number" id="intervaloParcelas" class="input-field" value="30">
+          </div>
           </div>
           <div id="prazo-resumo-container" class="p-3 rounded-lg border space-y-2" style="background-color: var(--background); border-color: var(--border-color);">
             <div>
@@ -188,6 +258,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script type="module" src="script.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
