@@ -247,10 +247,9 @@ export function renderInvestments(investimentos) {
     const multiTemplate = document.getElementById('multi-investment-card-template');
     const installmentTemplate = document.getElementById('installment-row-template');
 
-    // Se elementos essenciais não existem, pode ser que a página ainda não carregou completamente
-    // Retorne silenciosamente em vez de logar erro
+    // Se elementos essenciais não existem, aguarde um pouco e tente novamente
     if (!listEl || !loadingMessage || !singleTemplate || !multiTemplate || !installmentTemplate) {
-        console.warn("Aguardando carregamento completo da UI para renderizar investimentos");
+        setTimeout(() => renderInvestments(investimentos), 100);
         return;
     };
     

@@ -158,9 +158,13 @@ export async function fetchInvestments() {
 
 export function subscribeToChanges(callback) {
     if (!supabaseClient) return;
+
+    // Prevent multiple subscriptions
     if (realtimeChannel) {
-        supabaseClient.removeChannel(realtimeChannel);
+        console.log('Realtime channel already exists, skipping subscription.');
+        return;
     }
+
     realtimeChannel = supabaseClient
         .channel('investimento_changes_public')
         .on(
