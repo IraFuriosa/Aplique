@@ -86,9 +86,11 @@ export async function marcarComoResgatado(investmentId) {
 export async function toggleParcelaQuitada(investmentId, parcelaIndex) {
     if (!supabaseClient) throw new Error("Supabase client not initialized.");
 
+    console.log(`Tentando alternar parcela ${parcelaIndex} do investimento ${investmentId}`);
+
     const { data: investimento, error: fetchError } = await supabaseClient
         .from(TABLE_INVESTIMENTOS)
-        .select('parcelas_quitadas')
+        .select('parcelas_quitadas, numero_parcelas, tipo_retorno')
         .eq('id', investmentId)
         .single();
 
@@ -97,11 +99,37 @@ export async function toggleParcelaQuitada(investmentId, parcelaIndex) {
         throw fetchError || new Error("Investimento não encontrado para atualização da parcela.");
     }
 
-    const novasParcelasQuitadas = [...(investimento.parcelas_quitadas || [])];
-    if (novasParcelasQuitadas.length <= parcelaIndex) {
-         throw new Error("Índice da parcela fora do limite.");
+    console.log('Dados do investimento:', investimento);
+
+    // Validar se é um investimento multi-parcela
+    if (investimento.tipo_retorno !== 'multi') {
+        throw new Error("Esta operação só é válida para investimentos com múltiplas parcelas.");
     }
+
+    // Inicializar array se não existir
+    let parcelasQuitadas = investimento.parcelas_quitadas;
+    if (!Array.isArray(parcelasQuitadas)) {
+        console.log('Array parcelas_quitadas não existe, inicializando...');
+        parcelasQuitadas = Array(investimento.numero_parcelas || 0).fill(false);
+    }
+
+    // Garantir que o array tenha o tamanho correto
+    if (parcelasQuitadas.length !== investimento.numero_parcelas) {
+        console.log('Ajustando tamanho do array parcelas_quitadas');
+        parcelasQuitadas = Array(investimento.numero_parcelas || 0).fill(false);
+    }
+
+    // Validar índice
+    if (parcelaIndex < 0 || parcelaIndex >= parcelasQuitadas.length) {
+        console.error(`Índice da parcela inválido: ${parcelaIndex}, tamanho do array: ${parcelasQuitadas.length}`);
+        throw new Error(`Índice da parcela fora do limite: ${parcelaIndex}`);
+    }
+
+    // Alternar o status da parcela
+    const novasParcelasQuitadas = [...parcelasQuitadas];
     novasParcelasQuitadas[parcelaIndex] = !novasParcelasQuitadas[parcelaIndex];
+
+    console.log(`Alterando parcela ${parcelaIndex} de ${parcelasQuitadas[parcelaIndex]} para ${novasParcelasQuitadas[parcelaIndex]}`);
 
     const { error } = await supabaseClient
         .from(TABLE_INVESTIMENTOS)
@@ -112,6 +140,8 @@ export async function toggleParcelaQuitada(investmentId, parcelaIndex) {
         console.error("Erro ao atualizar parcela:", error);
         throw error;
     }
+
+    console.log('Parcela atualizada com sucesso');
 }
 
 export async function fetchInvestments() {

@@ -232,7 +232,16 @@ export function updateSummaryDisplay(investimentos) {
         // Only count active investments for the summary
         if (inv.status !== 'resgatado') {
             totalInvestido += inv.valor || 0;
-            totalHaver += inv.haver || 0;
+
+            // Para investimentos multi-parcela, calcular apenas parcelas não quitadas
+            if (inv.tipo_retorno === 'multi' && inv.numero_parcelas > 0 && inv.parcelas_quitadas) {
+                const valorParcela = (inv.haver || 0) / inv.numero_parcelas;
+                const parcelasNaoQuitadas = inv.parcelas_quitadas.filter(quitada => !quitada).length;
+                totalHaver += valorParcela * parcelasNaoQuitadas;
+            } else {
+                // Para investimentos únicos, usar o haver total
+                totalHaver += inv.haver || 0;
+            }
         }
     });
 
@@ -331,11 +340,36 @@ export function renderInvestments(investimentos) {
                     toggle.dataset.investmentId = inv.id;
                     toggle.dataset.parcelaIndex = i;
                     toggle.addEventListener('click', async (e) => {
+                        const toggleEl = e.currentTarget;
+                        const parcelaIndex = parseInt(toggleEl.dataset.parcelaIndex);
+                        const investmentId = parseInt(toggleEl.dataset.investmentId);
+
                         try {
-                            await toggleParcelaQuitada(parseInt(e.currentTarget.dataset.investmentId), parseInt(e.currentTarget.dataset.parcelaIndex));
-                            showFeedback(`Parcela ${parseInt(e.currentTarget.dataset.parcelaIndex) + 1} atualizada.`, 'info');
+                            // Atualizar visualmente primeiro (otimista)
+                            toggleEl.classList.toggle('checked');
+                            const isChecked = toggleEl.classList.contains('checked');
+                            const row = toggleEl.closest('.flex');
+                            if (isChecked) {
+                                row.classList.add('opacity-50', 'line-through');
+                            } else {
+                                row.classList.remove('opacity-50', 'line-through');
+                            }
+
+                            // Depois atualizar no banco
+                            await toggleParcelaQuitada(investmentId, parcelaIndex);
+                            showFeedback(`Parcela ${parcelaIndex + 1} atualizada.`, 'info');
                         } catch (error) {
+                            // Se deu erro, reverter visualmente
+                            toggleEl.classList.toggle('checked');
+                            const isChecked = toggleEl.classList.contains('checked');
+                            const row = toggleEl.closest('.flex');
+                            if (isChecked) {
+                                row.classList.add('opacity-50', 'line-through');
+                            } else {
+                                row.classList.remove('opacity-50', 'line-through');
+                            }
                             showFeedback('Erro ao atualizar o status da parcela.', 'error');
+                            console.error('Erro no toggle:', error);
                         }
                     });
 
